@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import type { WindowId, WindowState } from '../types';
+import type { PanelId, PanelState } from '../types';
 
 interface HeaderProps {
     characterName: string;
@@ -8,12 +8,14 @@ interface HeaderProps {
     onMenu: () => void;
     onSettings: () => void;
     onSave: () => void;
-    windows: Record<WindowId, WindowState>;
-    setWindows: React.Dispatch<React.SetStateAction<Record<WindowId, WindowState>>>;
-    initialWindows: Record<WindowId, WindowState>;
+    panels: Record<PanelId, PanelState>;
+    onPanelToggle: (id: PanelId) => void;
+    onToggleAllWindows: () => void;
+    allWindowsVisible: boolean;
+    onAutoArrange: () => void; // New prop for auto-arranging windows
 }
 
-const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode}> = ({ onClick, children }) => {
+const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode, isActive?: boolean}> = ({ onClick, children, isActive }) => {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   
@@ -23,8 +25,8 @@ const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode}> =
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        backgroundColor: isHovered ? theme.colors.highlightBg : 'transparent',
-        color: isHovered ? theme.colors.highlightText : theme.colors.text,
+        backgroundColor: isHovered || isActive ? theme.colors.highlightBg : 'transparent',
+        color: isHovered || isActive ? theme.colors.highlightText : theme.colors.text,
         cursor: 'pointer',
       }}
       className="px-1"
@@ -34,16 +36,12 @@ const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode}> =
   );
 };
 
-const DropdownItem: React.FC<{onClick: () => void, children: React.ReactNode}> = ({ onClick, children }) => {
+const DropdownMenuItem: React.FC<{onClick: () => void, children: React.ReactNode}> = ({ onClick, children }) => {
     const { theme } = useTheme();
     return (
         <div 
             onClick={onClick} 
-            className="whitespace-nowrap cursor-pointer hover:bg-gray-700 p-1"
-            style={{
-                '--hover-bg': theme.colors.highlightBg,
-                '--hover-text': theme.colors.highlightText
-            } as React.CSSProperties}
+            className="whitespace-nowrap cursor-pointer p-1 flex items-center"
             onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.highlightBg;
                 e.currentTarget.style.color = theme.colors.highlightText;
@@ -58,39 +56,13 @@ const DropdownItem: React.FC<{onClick: () => void, children: React.ReactNode}> =
     )
 }
 
-export const Header: React.FC<HeaderProps> = ({ characterName, location, onMenu, onSettings, onSave, windows, setWindows, initialWindows }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+    characterName, location, onMenu, onSettings, onSave, 
+    panels, onPanelToggle, onToggleAllWindows, allWindowsVisible, onAutoArrange
+}) => {
     const { theme } = useTheme();
     const [showWindowsMenu, setShowWindowsMenu] = useState(false);
     
-    const showAllWindows = () => {
-        setWindows(prev => {
-            const newWindows = {...prev};
-            Object.keys(newWindows).forEach(id => {
-                newWindows[id].isOpen = true;
-            });
-            return newWindows;
-        });
-        setShowWindowsMenu(false);
-    };
-    
-    const minimizeAllWindows = () => {
-        setWindows(prev => {
-            const newWindows = {...prev};
-            Object.keys(newWindows).forEach(id => {
-                if (newWindows[id].isOpen) {
-                    newWindows[id].isMinimized = true;
-                }
-            });
-            return newWindows;
-        });
-        setShowWindowsMenu(false);
-    };
-
-    const resetWindowLayout = () => {
-        setWindows(initialWindows);
-        setShowWindowsMenu(false);
-    }
-
     return (
         <header 
             className="p-2 mb-4 text-lg"
@@ -102,16 +74,39 @@ export const Header: React.FC<HeaderProps> = ({ characterName, location, onMenu,
                     <HeaderButton onClick={onSettings}>Settings</HeaderButton>
                     <HeaderButton onClick={onSave}>Save Game</HeaderButton>
                     <div className="relative">
-                        <HeaderButton onClick={() => setShowWindowsMenu(s => !s)}>Windows</HeaderButton>
+                        <HeaderButton 
+                            onClick={onToggleAllWindows} 
+                            isActive={allWindowsVisible}
+                            aria-haspopup="true"
+                            aria-expanded={showWindowsMenu}
+                        >
+                            Windows
+                        </HeaderButton>
+                        <span 
+                            onClick={(e) => { e.stopPropagation(); setShowWindowsMenu(s => !s); }} 
+                            style={{cursor: 'pointer', paddingLeft: '2px'}}
+                        >
+                            ▼
+                        </span>
                         {showWindowsMenu && (
                             <div 
-                                className="absolute top-full left-0 p-1" 
+                                className="absolute top-full left-0 p-1 min-w-[200px]" 
                                 style={{backgroundColor: theme.colors.bg, border: `1px solid ${theme.colors.accent1}`, zIndex: 9999}}
                                 onMouseLeave={() => setShowWindowsMenu(false)}
                             >
-                               <DropdownItem onClick={showAllWindows}>Show All Windows</DropdownItem>
-                               <DropdownItem onClick={minimizeAllWindows}>Minimize All Windows</DropdownItem>
-                               <DropdownItem onClick={resetWindowLayout}>Reset Window Layout</DropdownItem>
+                               {/* FEATURE: Auto-arrange button */}
+                               <DropdownMenuItem onClick={onAutoArrange}>
+                                    <span className="inline-block w-4 text-center">#</span> Auto-Arrange
+                               </DropdownMenuItem>
+
+                               <div className="my-1" style={{borderTop: `1px solid ${theme.colors.accent2}`, opacity: 0.5}}/>
+
+                               <div className="px-1 opacity-75">Toggle Panels</div>
+                               {Object.values(panels).map((panel: PanelState) => (
+                                   <DropdownMenuItem key={panel.id} onClick={() => onPanelToggle(panel.id)}>
+                                       <span className="inline-block w-4">{panel.isOpen ? '✓' : ''}</span> {panel.title}
+                                   </DropdownMenuItem>
+                               ))}
                             </div>
                         )}
                     </div>

@@ -9,12 +9,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({ asciiMap }) => {
   const { theme } = useTheme();
   return (
     <div 
-        className="w-full h-full text-lg leading-tight overflow-auto"
+        className="w-full h-full leading-tight overflow-hidden"
         style={{ 
             backgroundColor: 'inherit',
         }}
     >
-      <pre className="p-1 h-full whitespace-pre-wrap" style={{color: theme.colors.accent2}}>
+      <pre 
+        className="p-1 whitespace-pre"
+        style={{
+            color: theme.colors.accent2,
+            fontSize: '0.85em', // Adjusted for better fit
+            lineHeight: '1.1',  // Adjusted for better fit
+        }}
+      >
         {asciiMap}
       </pre>
     </div>

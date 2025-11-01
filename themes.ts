@@ -17,14 +17,14 @@ export const THEMES: Theme[] = [
   {
     name: 'Terminal',
     colors: {
-      bg: '#0D1F2D',
-      text: '#39FF14',
-      accent1: '#39FF14',
-      accent2: '#28a745',
-      highlightBg: '#39FF14',
-      highlightText: '#0D1F2D',
-      disabledBg: '#333333',
-      disabledText: '#777777',
+      bg: '#0a0f0d',       // Very dark green-black
+      text: '#33ff33',     // Bright CRT green
+      accent1: '#33ff33',    // Bright green for borders/titles
+      accent2: '#22dd22',    // Slightly dimmer green for map/special text
+      highlightBg: '#33ff33',// Bright green for selection background
+      highlightText: '#0a0f0d',// Dark bg color for selection text
+      disabledBg: '#05110a', // Darker background
+      disabledText: '#226622', // Dim, desaturated green for disabled items
     },
   },
   {

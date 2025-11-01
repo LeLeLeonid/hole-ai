@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface Item {
   name: string;
   description: string;
@@ -71,27 +73,27 @@ export interface SaveSlot {
     id: string;
     timestamp: number;
     gameState: GameState;
-    windowState: Record<WindowId, WindowState>;
+    panelState: Record<PanelId, PanelState>;
     themeName: string;
     settings: Settings;
 }
 
-export type WindowPosition = { x: number; y: number };
-export type WindowSize = { width: number; height: number };
-export type WindowId = string;
-export type SnapState = { top: boolean, right: boolean, bottom: boolean, left: boolean };
+export type PanelId = string;
 
-export interface WindowState {
-  id: WindowId;
+// REFACTOR: Re-introduced `isMinimized` to support proper window minimizing functionality,
+// which is now distinct from closing a window.
+export interface PanelState {
+  id: PanelId;
   title: string;
   isOpen: boolean;
-  isMinimized: boolean;
   isMaximized: boolean;
-  isSnapped: SnapState;
-  position: WindowPosition;
-  size: WindowSize;
-  zIndex: number;
+  isMinimized: boolean;
   type?: ContextualWindow['type'];
-  previousPosition?: WindowPosition;
-  previousSize?: WindowSize;
+  pos: { x: number; y: number };
+  size: { width: number; height: number };
+  minSize?: { width: number; height: number };
+  // Used to restore window state after un-maximizing
+  prevPos?: { x: number; y: number };
+  prevSize?: { width: number; height: number };
+  zIndex: number;
 }

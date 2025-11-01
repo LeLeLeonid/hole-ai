@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# HOLE-A!: AI-Powered Interactive Fiction Engine
 
-# Run and deploy your AI Studio app
+![Screenshot of Main menu](https://github.com/user-attachments/assets/add419af-ebf9-4781-a2d5-84a91f3d88c2)
 
-This contains everything you need to run your app locally.
+*A dynamic text-based RPG powered by the Google Gemini API. This project explores procedural narrative, branching dialogues, and AI-driven world-building.*
 
-View your app in AI Studio: https://ai.studio/apps/drive/1MG3D_ayO874do2RVneC_i7gZOrA7g5pT
+![Screenshot of Gameplay](https://github.com/user-attachments/assets/59f1bbe8-4f17-4419-98fc-e8e30cf273e6)
+---
 
-## Run Locally
+## Key Features
+- **Dynamic Story Generation:** The narrative evolves based on player choices, using the Gemini API to generate responsive story content.
+- **ASCII/Unicode Visuals:** Pseudo-graphic rendering for an immersive, retro terminal aesthetic.
+- **Stateful Character Interaction:** NPCs and the environment remember player actions and react accordingly.
 
-**Prerequisites:**  Node.js
+## Technology Stack
+- **Frontend:** TypeScript, Vite
+- **AI Backend:** Google Gemini API via Google AI Studio
+- **Core Logic:** TypeScript
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+This project was bootstrapped with the Google AI Studio template.
+
+1.  Clone the repository: `git clone https://github.com/LeLeLeonid/hoie-ai.git`
+2.  Install dependencies: `npm install`
+3.  Run the development server: `npm run dev`
+
+---
+*This project is a work-in-progress focused on exploring the intersection of generative AI and game design.*

@@ -3,6 +3,9 @@ import type { GameState } from '../types';
 import { INITIAL_GAME_STATE } from '../constants';
 import { getGameUpdate } from '../services/geminiService';
 
+// FEATURE: Set a max number of log entries to prevent performance issues.
+const MAX_LOG_ENTRIES = 200;
+
 export const useGameLoop = () => {
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,7 +46,7 @@ export const useGameLoop = () => {
 
         setGameState(prev => ({
           ...prev,
-          log: [...prev.log, `> ${command}`, narration],
+          log: [...prev.log, `> ${command}`, narration].slice(-MAX_LOG_ENTRIES),
         }));
         return; // Skip API call
       }
@@ -53,7 +56,7 @@ export const useGameLoop = () => {
     
     const currentStateForApi = {
         ...gameState,
-        log: [...gameState.log, `> ${command}`]
+        log: [...gameState.log, `> ${command}`].slice(-MAX_LOG_ENTRIES)
     };
 
     setGameState(currentStateForApi);
@@ -61,11 +64,13 @@ export const useGameLoop = () => {
     const newState = await getGameUpdate(currentStateForApi, command);
     
     if (newState) {
+      // Also truncate the log returned from the API
+      newState.log = newState.log.slice(-MAX_LOG_ENTRIES);
       setGameState(newState);
     } else {
       setGameState(prev => ({
         ...prev,
-        log: [...prev.log, "A strange energy crackles, and the world seems to pause. (Error connecting to the Gemini Master)"]
+        log: [...prev.log, "A strange energy crackles, and the world seems to pause. (Error connecting to the Gemini Master)"].slice(-MAX_LOG_ENTRIES)
       }));
     }
     setIsLoading(false);

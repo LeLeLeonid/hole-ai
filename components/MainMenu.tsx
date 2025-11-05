@@ -55,7 +55,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStart, onSettings, onLoad 
       </div>
       <div className="absolute bottom-4 text-center">
         <a 
-          href="https://t.me/leleleonid" 
+          href="https://github.com/LeLeLeonid" 
           target="_blank" 
           rel="noopener noreferrer"
           className="hover:underline"

@@ -7,7 +7,7 @@ export interface Item {
 }
 
 export interface NPC {
-  name: string;
+  name:string;
   description: string;
   faceDescription: string;
   clothingDescription: string;
@@ -73,27 +73,15 @@ export interface SaveSlot {
     id: string;
     timestamp: number;
     gameState: GameState;
-    panelState: Record<PanelId, PanelState>;
     themeName: string;
     settings: Settings;
 }
 
 export type PanelId = string;
 
-// REFACTOR: Re-introduced `isMinimized` to support proper window minimizing functionality,
-// which is now distinct from closing a window.
 export interface PanelState {
   id: PanelId;
   title: string;
   isOpen: boolean;
-  isMaximized: boolean;
-  isMinimized: boolean;
   type?: ContextualWindow['type'];
-  pos: { x: number; y: number };
-  size: { width: number; height: number };
-  minSize?: { width: number; height: number };
-  // Used to restore window state after un-maximizing
-  prevPos?: { x: number; y: number };
-  prevSize?: { width: number; height: number };
-  zIndex: number;
 }

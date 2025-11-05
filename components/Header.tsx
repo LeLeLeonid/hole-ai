@@ -10,9 +10,8 @@ interface HeaderProps {
     onSave: () => void;
     panels: Record<PanelId, PanelState>;
     onPanelToggle: (id: PanelId) => void;
-    onToggleAllWindows: () => void;
-    allWindowsVisible: boolean;
-    onAutoArrange: () => void; // New prop for auto-arranging windows
+    isLogOnlyMode: boolean;
+    onToggleLogOnlyMode: () => void;
 }
 
 const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode, isActive?: boolean}> = ({ onClick, children, isActive }) => {
@@ -58,14 +57,14 @@ const DropdownMenuItem: React.FC<{onClick: () => void, children: React.ReactNode
 
 export const Header: React.FC<HeaderProps> = ({ 
     characterName, location, onMenu, onSettings, onSave, 
-    panels, onPanelToggle, onToggleAllWindows, allWindowsVisible, onAutoArrange
+    panels, onPanelToggle, isLogOnlyMode, onToggleLogOnlyMode
 }) => {
     const { theme } = useTheme();
     const [showWindowsMenu, setShowWindowsMenu] = useState(false);
     
     return (
         <header 
-            className="p-2 mb-4 text-lg"
+            className="p-2 mb-2 text-lg flex-shrink-0"
             style={{ border: `1px solid ${theme.colors.accent1}` }}
         >
             <div className="flex justify-between items-center">
@@ -73,45 +72,40 @@ export const Header: React.FC<HeaderProps> = ({
                     <HeaderButton onClick={onMenu}>Main Menu</HeaderButton>
                     <HeaderButton onClick={onSettings}>Settings</HeaderButton>
                     <HeaderButton onClick={onSave}>Save Game</HeaderButton>
-                    <div className="relative">
-                        <HeaderButton 
-                            onClick={onToggleAllWindows} 
-                            isActive={allWindowsVisible}
+                    <div 
+                        className="relative"
+                        onMouseLeave={() => setShowWindowsMenu(false)}
+                    >
+                        <span
+                            onClick={onToggleLogOnlyMode}
+                            onMouseEnter={() => setShowWindowsMenu(true)}
+                            className="px-1"
+                            style={{
+                                cursor: 'pointer',
+                                backgroundColor: isLogOnlyMode ? theme.colors.highlightBg : 'transparent',
+                                color: isLogOnlyMode ? theme.colors.highlightText : theme.colors.text,
+                            }}
                             aria-haspopup="true"
                             aria-expanded={showWindowsMenu}
                         >
-                            Windows
-                        </HeaderButton>
-                        <span 
-                            onClick={(e) => { e.stopPropagation(); setShowWindowsMenu(s => !s); }} 
-                            style={{cursor: 'pointer', paddingLeft: '2px'}}
-                        >
-                            ▼
+                          [ Windows ▼ ]
                         </span>
                         {showWindowsMenu && (
                             <div 
                                 className="absolute top-full left-0 p-1 min-w-[200px]" 
                                 style={{backgroundColor: theme.colors.bg, border: `1px solid ${theme.colors.accent1}`, zIndex: 9999}}
-                                onMouseLeave={() => setShowWindowsMenu(false)}
                             >
-                               {/* FEATURE: Auto-arrange button */}
-                               <DropdownMenuItem onClick={onAutoArrange}>
-                                    <span className="inline-block w-4 text-center">#</span> Auto-Arrange
-                               </DropdownMenuItem>
-
-                               <div className="my-1" style={{borderTop: `1px solid ${theme.colors.accent2}`, opacity: 0.5}}/>
-
                                <div className="px-1 opacity-75">Toggle Panels</div>
                                {Object.values(panels).map((panel: PanelState) => (
                                    <DropdownMenuItem key={panel.id} onClick={() => onPanelToggle(panel.id)}>
-                                       <span className="inline-block w-4">{panel.isOpen ? '✓' : ''}</span> {panel.title}
+                                       <span className="inline-block w-4 text-center">{panel.isOpen ? '✓' : '•'}</span> {panel.title}
                                    </DropdownMenuItem>
                                ))}
                             </div>
                         )}
                     </div>
                 </div>
-                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI</h1>
+                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE A! v.0.3</h1>
             </div>
             <div className="mt-2 pt-2 flex justify-between" style={{ borderTop: `1px solid ${theme.colors.accent1}` }}>
                 <span className="whitespace-pre">{`CHARACTER: ${characterName}`}</span>

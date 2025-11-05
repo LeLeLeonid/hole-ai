@@ -14,7 +14,7 @@ export const PovPanel: React.FC<PovPanelProps> = ({ pov }) => {
             backgroundColor: 'inherit',
         }}
     >
-      <pre className="p-1 h-full whitespace-pre" style={{color: theme.colors.accent2}}>
+      <pre className="p-1 h-full whitespace-pre" style={{color: theme.colors.accent2, margin: 0}}>
         {pov}
       </pre>
     </div>

@@ -19,7 +19,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ asciiMap }) => {
         style={{
             color: theme.colors.accent2,
             fontSize: '0.85em', // Adjusted for better fit
-            lineHeight: '1.1',  // Adjusted for better fit
+            lineHeight: '1.0',  // Adjusted to make map more square
+            margin: 0, // Prevent extra spacing causing scrollbars
         }}
       >
         {asciiMap}

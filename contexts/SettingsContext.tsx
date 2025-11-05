@@ -13,7 +13,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 const defaultSettings: Settings = {
   scale: 1.0,
-  textSpeed: 'instant',
+  textSpeed: 'normal',
   background: 'none',
 };
 

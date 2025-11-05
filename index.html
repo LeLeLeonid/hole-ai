@@ -13,6 +13,12 @@
       body {
         font-family: 'VT323', monospace;
       }
+      @keyframes blink {
+        50% { opacity: 0; }
+      }
+      .blinking-cursor {
+        animation: blink 1s step-end infinite;
+      }
     </style>
   <script type="importmap">
 {
@@ -25,6 +31,7 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
   <body>
     <div id="root"></div>

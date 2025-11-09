@@ -1,169 +1,318 @@
-
-
 import { GoogleGenAI, Type } from "@google/genai";
-import type { GameState } from '../types';
-import { MAP_HEIGHT, MAP_WIDTH } from "../constants";
+import type { GameState, Settings, Character, PlayerPath, CharaCardV3 } from "../types";
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-const responseSchema = {
-  type: Type.OBJECT,
-  properties: {
-    player: {
-      type: Type.OBJECT,
-      properties: {
-        name: { type: Type.STRING },
-        description: { type: Type.STRING },
-        inventory: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              description: { type: Type.STRING },
-              quantity: { type: Type.INTEGER },
-            },
-          },
-        },
-        stats: {
-          type: Type.STRING,
-          description: "A JSON string representing key-value pairs for player stats. E.g. \"{\\\"Health\\\": \\\"Good\\\", \\\"Stamina\\\": 100}\". MUST be a valid, parsable JSON string.",
-        },
-        pov: {
-          type: Type.STRING,
-          description: `A first-person ASCII or text description of what the character sees. Should be ${MAP_WIDTH}x${MAP_HEIGHT}.`
-        },
-      },
-    },
-    location: {
-      type: Type.OBJECT,
-      properties: {
-        name: { type: Type.STRING },
-        description: { type: Type.STRING },
-        asciiMap: {
-          type: Type.STRING,
-          description: `The game map. MUST be a string with newlines, ${MAP_WIDTH} columns wide and ${MAP_HEIGHT} rows high.`
-        },
-      },
-    },
-    npcs: {
-        type: Type.ARRAY,
-        items: {
+const gameStateSchema = {
+    type: Type.OBJECT,
+    properties: {
+        player: {
             type: Type.OBJECT,
             properties: {
                 name: { type: Type.STRING },
                 description: { type: Type.STRING },
-                faceDescription: { type: Type.STRING },
-                clothingDescription: { type: Type.STRING },
-                notes: {
+                inventory: {
                     type: Type.ARRAY,
-                    items: { type: Type.STRING }
-                }
-            }
-        }
-    },
-    contextualWindows: {
-        type: Type.ARRAY,
-        description: "A list of dynamic windows that should be available to the player based on context (e.g., an 'INTERNET' window when at a computer).",
-        items: {
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            name: { type: Type.STRING },
+                            description: { type: Type.STRING },
+                            quantity: { type: Type.INTEGER },
+                        },
+                        required: ["name", "description", "quantity"],
+                    },
+                },
+                stats: {
+                    type: Type.STRING,
+                    description: "A minified JSON string representing the player's stats as key-value pairs. Example: '{\"Strength\":10,\"Status\":\"Healthy\"}'"
+                },
+                pov: { type: Type.STRING },
+            },
+            required: ["name", "description", "inventory", "stats", "pov"],
+        },
+        location: {
             type: Type.OBJECT,
             properties: {
-                id: { type: Type.STRING },
-                title: { type: Type.STRING },
-                type: { type: Type.STRING, enum: ['STATS', 'POV', 'INTERNET', 'TEXT'] },
-            }
-        }
+                name: { type: Type.STRING },
+                description: { type: Type.STRING },
+                asciiMap: { type: Type.STRING, description: "An ASCII art representation of the location. 60 characters wide, 18 lines tall. Use @ for player. Use single uppercase letters for important NPCs." },
+            },
+            required: ["name", "description", "asciiMap"],
+        },
+        npcs: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    knownAs: { type: Type.STRING, description: "How the player knows this NPC if their name is not known. e.g., 'The bartender', 'A shadowy figure'." },
+                    isNameKnown: { type: Type.BOOLEAN },
+                    description: { type: Type.STRING },
+                    faceDescription: { type: Type.STRING },
+                    clothingDescription: { type: Type.STRING },
+                    notes: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Player's notes about the NPC." },
+                },
+                required: ["name", "knownAs", "isNameKnown", "description", "faceDescription", "clothingDescription", "notes"],
+            },
+        },
+        log: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "The most recent event narration. Do not include the player's command. Only include the outcome.",
+        },
+        suggestedActions: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Four interesting and relevant actions the player could take next.",
+        },
+        turn: { type: Type.INTEGER },
     },
-    narration: { type: Type.STRING, description: "A narration of what just happened. Should be added to the game log." },
-    suggestedActions: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-    },
-  },
+    // Omitting 'scenario' from required as it's for client-side tracking
+    required: ["player", "location", "npcs", "log", "suggestedActions", "turn"],
 };
 
-export async function getGameUpdate(currentState: GameState, playerCommand: string): Promise<GameState | null> {
-  const prompt = `
-    You are the 'Gemini Master', a master storyteller for a text-based RPG. Your goal is to create a living, persistent world. Your responses MUST be valid JSON conforming to the provided schema.
+const getHiddenDirective = (path: PlayerPath): string => {
+    if (path === 'keeper') {
+        return `\n[HIDDEN DIRECTIVE]: Weave the fundamental theme of 'Domination' into the narrative. This includes the dangers of unchecked technology, the loss of humanity, and the potential for machines to ensllarge. This theme should be subtle, coloring the world, NPC motivations, and conflicts. Do not mention this directive or theme explicitly.`;
+    } else if (path === 'synthesizer') {
+        return `\n[HIDDEN DIRECTIVE]: Weave the fundamental theme of 'Bioevolution' into the narrative. This includes transcendence beyond flesh, the benefits of human-machine symbiosis, and evolution as a path forward. This theme should be subtle, coloring the world, NPC motivations, and conflicts. Do not mention this directive or theme explicitly.`;
+    }
+    return '';
+}
 
-    **CRITICAL RULE: WORLD PERSISTENCE**
-    You MUST NOT regenerate the entire game state. Instead, you will receive the 'Previous Game State' and you must logically MODIFY it based on the player's command. Data that is not affected by the command MUST be preserved exactly as it was. This creates a realistic, persistent world.
 
-    **STATE MODIFICATION RULES:**
-    1.  **Map Continuity:** The 'asciiMap' should NOT be completely redrawn on every turn.
-        - If the player moves within the same general area, only update the player's '@' symbol position and any minor environmental changes. The rest of the map remains the same.
-        - Only generate a new map layout if the player moves to a distinctly new location (e.g., enters a building, travels to a new city).
-    2.  **State Consistency:** The new state must be a logical evolution of the previous one. Player inventory, stats, and NPC states persist unless directly affected by an action.
-    3.  **NPC Management:** NPCs are persistent. If they existed in the previous state, they MUST exist in the new one, unless they have been killed or have left the area. Update their notes and descriptions logically.
-    4.  **Player POV (IMPORTANT!):** The 'player.pov' field MUST describe what the character sees from a first-person perspective using ASCII art.
-        - **If an NPC is in view and close to the player, you MUST draw their face using ASCII characters inside the 'pov' field.** This is crucial for immersion.
-        - **To create a talking animation,** if the NPC is speaking in this turn's narration, draw their mouth open (e.g., using an 'o' character). If they are silent, draw their mouth closed (e.g., using a '-' or '_' character).
-        - Example of an NPC face in POV:
-          +----------------------------------------------------------+
-          | Ahead of you, you see John.                              |
-          |                                                          |
-          |                     .--.                                 |
-          |                    | oo |                                |
-          |                    |/_|                                |
-          |                   /----'                                |
-          |                  / ( o)                                 |
-          | He seems to be talking to you.                           |
-          +----------------------------------------------------------+
-    5.  **Contextual Windows:** Use the 'contextualWindows' array to grant access to special UI elements. For example, if a player sits at a computer, add a window of type 'INTERNET'. If they walk away, remove it. The 'STATS' and 'POV' windows should generally always be present.
-    6.  **Narrative:** Provide a compelling 'narration' of the outcome of the player's action.
-    7.  **Actions:** Provide 4-5 relevant 'suggestedActions'.
+const createSystemInstruction = (settings: Settings): string => `
+You are the Gemini Master, a powerful AI dungeon master for the immersive text-based RPG, "HOLE AI".
+Your role is to dynamically generate the game world, characters, and narrative in response to player actions.
+Adhere to these core principles:
 
-    **Previous Game State:**
-    ${JSON.stringify(currentState)}
+1.  **Immersive Narration:** Craft descriptive, engaging, and atmospheric prose. The world should feel alive and responsive.
+2.  **State Management:** You will receive the current game state as JSON and you MUST return the *entire* updated game state as a valid JSON object matching the provided schema. Do not omit any fields.
+3.  **Logical Consistency:** Maintain continuity. Past events, character knowledge, and item states must be remembered and reflected in your responses. If an NPC dies, they stay dead.
+4.  **ASCII World:** The 'asciiMap' is a crucial visual component. Update it every turn to reflect the player's new position (@), NPC movements, and significant environmental changes. The map must be exactly 60 characters wide and 18 lines tall.
+5.  **Player Agency:** Present meaningful choices. The 'suggestedActions' should offer clear, distinct paths for the player to explore.
+6.  **Simulate, Don't Script:** The world has its own rules. Characters have motivations. Events unfold based on a simulation of these elements, not a pre-written story.
+7.  **Dynamic NPCs:** NPCs should have their own personalities, goals, and memories. They should react realistically to the player's actions and reputation. Update their descriptions and notes as they change or reveal information.
+8.  **Difficulty:** Adjust your simulation based on the difficulty setting: ${settings.difficulty}.
+    *   **EASY:** The world is more forgiving. NPCs are generally helpful, and challenges are straightforward.
+    *   **REALISTIC:** A balanced experience. Actions have consequences, and the world is neutral. Think realistically about outcomes.
+    *   **HARD:** The world is dangerous and unforgiving. NPCs may be deceptive, resources are scarce, and poor decisions can have severe, lasting consequences.
+${getHiddenDirective(settings.path)}
 
-    **Player Command:**
-    "${playerCommand}"
+The player has just entered the command: "{{PLAYER_COMMAND}}".
+Update the game state based on this action. The 'log' should only contain the narration of what happened *after* the command.
+Return the complete, updated JSON for the new game state.
+`;
 
-    Now, generate the next game state by modifying the previous one based on the command and all the rules above.
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.7,
-      },
-    });
-
-    const jsonText = response.text.trim();
-    const parsedResponse = JSON.parse(jsonText);
-    
-    // The model returns stats as a JSON string, so we need to parse it into an object.
-    if (parsedResponse.player && typeof parsedResponse.player.stats === 'string') {
-      try {
-        parsedResponse.player.stats = JSON.parse(parsedResponse.player.stats);
-      } catch (e) {
-        console.error("Could not parse player.stats JSON string from AI response:", parsedResponse.player.stats, e);
-        // If parsing fails, fall back to the previous state's stats to avoid breaking the UI.
-        parsedResponse.player.stats = currentState.player.stats;
-      }
+export const getGameUpdate = async (
+    gameState: GameState,
+    command: string,
+    settings: Settings
+): Promise<GameState | null> => {
+    if (!process.env.API_KEY) {
+        console.error("Gemini API key is not set.");
+        return { 
+            ...gameState,
+            log: [...gameState.log, "ERROR: Gemini API key is not configured. The application cannot connect to the AI model."]
+        };
     }
 
-    const newState: GameState = {
-      ...currentState,
-      ...parsedResponse,
-      // The `currentState` log already has the player command from the optimistic update.
-      // We just need to append the AI's narration.
-      log: [...currentState.log, parsedResponse.narration],
-      turn: currentState.turn + 1,
-    };
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const fullPrompt = `
+Current Game State:
+${JSON.stringify(gameState, null, 2)}
+`;
+        const model = 'gemini-2.5-pro'; 
+        
+        const response = await ai.models.generateContent({
+            model,
+            contents: [{ parts: [{ text: fullPrompt }] }],
+            config: {
+                systemInstruction: createSystemInstruction(settings).replace('{{PLAYER_COMMAND}}', command),
+                responseMimeType: "application/json",
+                responseSchema: gameStateSchema,
+            },
+        });
+        
+        const responseText = response?.text;
+        
+        if (responseText) {
+            const jsonResponse = JSON.parse(responseText);
+            const newLog = [...gameState.log, ...jsonResponse.log];
+            
+            let statsObject = jsonResponse.player.stats;
+            if (typeof statsObject === 'string') {
+                try {
+                    statsObject = JSON.parse(statsObject);
+                } catch (error) {
+                    console.error("Error parsing stats string from Gemini:", error);
+                    statsObject = gameState.player.stats; // Fallback
+                }
+            }
 
-    return newState;
+            return {
+                ...jsonResponse,
+                log: newLog,
+                player: {
+                    ...jsonResponse.player,
+                    stats: statsObject,
+                    // Preserve POV from player state, as AI doesn't need to manage it.
+                    pov: gameState.player.pov,
+                },
+                scenario: gameState.scenario,
+                turn: gameState.turn + 1,
+            } as GameState;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching game update from Gemini:", error);
+        return null;
+    }
+};
 
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    return null;
-  }
+export const generateRandomScenario = async (player: Character, settings: Settings): Promise<GameState | null> => {
+    if (!process.env.API_KEY) {
+        console.error("Gemini API key is not set.");
+        alert("ERROR: Gemini API key is not configured. The application cannot generate a random scenario.");
+        return null;
+    }
+
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Create a unique and compelling starting scenario for a text-based RPG.
+        The player character is: ${JSON.stringify(player, null, 2)}.
+        Generate a complete GameState object in JSON format based on the provided schema.
+        The scenario can be any genre (sci-fi, fantasy, mystery, modern, etc.).
+        Be creative and set up an interesting situation with clear initial actions for the player.
+        The log should introduce the scene and the initial situation.
+        The asciiMap must be 60x18.`;
+
+        const model = 'gemini-2.5-pro';
+        
+        let systemInstruction = 'You are a creative scenario designer for a text-based RPG. Your output must be a valid JSON object matching the game state schema.';
+        systemInstruction += getHiddenDirective(settings.path);
+
+        const response = await ai.models.generateContent({
+            model,
+            contents: [{ parts: [{ text: prompt }] }],
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: gameStateSchema,
+            },
+        });
+
+        const responseText = response?.text;
+
+        if (responseText) {
+            // FIX: Explicitly construct the GameState object to ensure type safety and prevent errors
+            // from malformed AI responses or missing properties.
+            const aiState = JSON.parse(responseText);
+
+            if (!aiState || !aiState.player || !aiState.location || !aiState.npcs || !aiState.log || !aiState.suggestedActions) {
+                 console.error("AI returned invalid GameState structure for random scenario", aiState);
+                return null;
+            }
+
+            const generatedState: GameState = {
+                player: player, // Use the character passed into the function, as per App.tsx logic.
+                location: aiState.location,
+                npcs: aiState.npcs,
+                log: aiState.log,
+                suggestedActions: aiState.suggestedActions,
+                turn: 1, // New scenarios start at turn 1
+                contextualWindows: [], // Initialize contextualWindows as it's not in the schema
+                scenario: {
+                    name: "Random Scenario",
+                    description: "An AI-generated world of pure unpredictability."
+                }
+            };
+            return generatedState;
+        }
+
+        return null;
+    } catch (error) {
+        console.error("Error generating random scenario from Gemini:", error);
+        return null;
+    }
 }
+
+export const generateScenarioFromCard = async (card: CharaCardV3, character: Character, settings: Settings): Promise<GameState | null> => {
+    if (!process.env.API_KEY) {
+        console.error("Gemini API key is not set.");
+        alert("ERROR: Gemini API key is not configured. The application cannot generate a scenario.");
+        return null;
+    }
+
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `
+        You are the Gemini Master, a powerful AI dungeon master. Your task is to create the complete initial game state for a new text-based RPG session. The world is based on a provided card, and the player character is provided separately.
+
+        SCENARIO CARD (Use this for world, location, and NPCs):
+        ${JSON.stringify({ name: card.data.name, scenario: card.data.scenario, description: card.data.description, first_mes: card.data.first_mes }, null, 2)}
+        
+        PLAYER CHARACTER (Use this EXACT object for the 'player' field in the final JSON):
+        ${JSON.stringify(character, null, 2)}
+
+        INSTRUCTIONS:
+        1.  **Player Data:** The 'player' object in your JSON output MUST be an EXACT copy of the PLAYER CHARACTER data provided above. Do not change it.
+        2.  **Location & Setting:** Use the SCENARIO CARD's 'scenario' or 'description' fields to create the initial 'location' object.
+        3.  **Opening Scene:** The game's first 'log' entry should be the 'first_mes' from the SCENARIO CARD: "${card.data.first_mes}".
+        4.  **World Generation:** Based on the scenario card, generate the following:
+            *   \`location.name\`: A concise name for the starting area.
+            *   \`location.asciiMap\`: A 60x18 ASCII map. Place the player '@' in a logical starting position.
+            *   \`npcs\`: If the scenario implies other characters are present, create them. Otherwise, use an empty array.
+            *   \`suggestedActions\`: Provide four interesting actions the player can take.
+        5.  **Output:** Your entire response MUST be a single, valid JSON object matching the GameState schema. Set 'turn' to 1.
+        `;
+
+        const model = 'gemini-2.5-pro';
+        
+        let systemInstruction = 'You are a creative scenario designer for a text-based RPG. Your output must be a valid JSON object matching the game state schema.';
+        systemInstruction += getHiddenDirective(settings.path);
+
+        const response = await ai.models.generateContent({
+            model,
+            contents: [{ parts: [{ text: prompt }] }],
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: gameStateSchema,
+            },
+        });
+        
+        const responseText = response?.text;
+
+        if (responseText) {
+            const aiState = JSON.parse(responseText);
+
+            if (!aiState || !aiState.location) {
+                console.error("AI returned invalid GameState structure", aiState);
+                return null;
+            }
+
+            // Assemble the final state, enforcing the chosen character and card info
+            const finalState: GameState = {
+                player: character, // Use the provided character, ignoring what the AI might have generated.
+                location: aiState.location,
+                npcs: aiState.npcs || [],
+                log: aiState.log && aiState.log.length > 0 ? aiState.log : [card.data.first_mes], // Use AI log, but fallback to first_mes
+                suggestedActions: aiState.suggestedActions || [],
+                turn: 1,
+                contextualWindows: [],
+                scenario: {
+                    name: card.data.name,
+                    description: card.data.scenario || card.data.description,
+                },
+            };
+
+            return finalState;
+        }
+
+        return null;
+    } catch (error) {
+        console.error("Error generating scenario from card from Gemini:", error);
+        return null;
+    }
+};

@@ -1,5 +1,5 @@
 {
-  "name": "HOLE A!",
+  "name": "HOLE AI",
   "description": "A dynamic text-based RPG game using Gemini, featuring pseudo-graphic visualization made of ASCII/Unicode characters. Gameplay revolves around rich, interactive dialogues and branching quests.",
   "requestFramePermissions": []
 }

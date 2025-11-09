@@ -12,19 +12,20 @@ const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disa
     const [isHovered, setIsHovered] = React.useState(false);
     
     return (
-      <div 
+      <button 
         onClick={!disabled ? onClick : undefined}
         onMouseEnter={() => !disabled && setIsHovered(true)}
         onMouseLeave={() => !disabled && setIsHovered(false)}
+        disabled={disabled}
         style={{
           backgroundColor: isHovered ? theme.colors.highlightBg : 'transparent',
           color: disabled ? theme.colors.disabledText : (isHovered ? theme.colors.highlightText : theme.colors.text),
           cursor: disabled ? 'default' : 'pointer',
         }}
-        className="p-2 text-2xl tracking-widest"
+        className="p-2 text-2xl tracking-widest bg-transparent border-none"
       >
         [ {children} ]
-      </div>
+      </button>
     );
 };
 

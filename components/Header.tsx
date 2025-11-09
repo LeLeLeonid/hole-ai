@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import type { PanelId, PanelState } from '../types';
 
@@ -19,7 +19,7 @@ const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode, is
   const [isHovered, setIsHovered] = useState(false);
   
   return (
-    <span
+    <button
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -28,19 +28,19 @@ const HeaderButton: React.FC<{onClick: () => void, children: React.ReactNode, is
         color: isHovered || isActive ? theme.colors.highlightText : theme.colors.text,
         cursor: 'pointer',
       }}
-      className="px-1"
+      className="px-1 bg-transparent border-none"
     >
       [ {children} ]
-    </span>
+    </button>
   );
 };
 
 const DropdownMenuItem: React.FC<{onClick: () => void, children: React.ReactNode}> = ({ onClick, children }) => {
     const { theme } = useTheme();
     return (
-        <div 
+        <button 
             onClick={onClick} 
-            className="whitespace-nowrap cursor-pointer p-1 flex items-center"
+            className="whitespace-nowrap cursor-pointer p-1 flex items-center w-full text-left bg-transparent border-none"
             onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.highlightBg;
                 e.currentTarget.style.color = theme.colors.highlightText;
@@ -51,7 +51,7 @@ const DropdownMenuItem: React.FC<{onClick: () => void, children: React.ReactNode
             }}
         >
             {children}
-        </div>
+        </button>
     )
 }
 
@@ -61,35 +61,69 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
     const { theme } = useTheme();
     const [showWindowsMenu, setShowWindowsMenu] = useState(false);
+    const [isWindowsHovered, setIsWindowsHovered] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setShowWindowsMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [menuRef]);
     
     return (
         <header 
-            className="p-2 mb-2 text-lg flex-shrink-0"
-            style={{ border: `1px solid ${theme.colors.accent1}` }}
+            className="relative p-2 mb-2 text-lg flex-shrink-0"
+            style={{ 
+                border: `1px solid ${theme.colors.accent1}`
+            }}
         >
+            <span className="absolute -top-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+            <span className="absolute -top-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+            <span className="absolute -bottom-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+            <span className="absolute -bottom-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+
             <div className="flex justify-between items-center">
                 <div className="flex gap-2 items-center">
                     <HeaderButton onClick={onMenu}>Main Menu</HeaderButton>
                     <HeaderButton onClick={onSettings}>Settings</HeaderButton>
                     <HeaderButton onClick={onSave}>Save Game</HeaderButton>
-                    <div 
-                        className="relative"
-                        onMouseLeave={() => setShowWindowsMenu(false)}
-                    >
-                        <span
-                            onClick={onToggleLogOnlyMode}
-                            onMouseEnter={() => setShowWindowsMenu(true)}
-                            className="px-1"
-                            style={{
-                                cursor: 'pointer',
-                                backgroundColor: isLogOnlyMode ? theme.colors.highlightBg : 'transparent',
-                                color: isLogOnlyMode ? theme.colors.highlightText : theme.colors.text,
+                    <div className="relative" ref={menuRef}>
+                        <div 
+                            className="flex items-center"
+                            onMouseEnter={() => setIsWindowsHovered(true)}
+                            onMouseLeave={() => setIsWindowsHovered(false)}
+                             style={{
+                                backgroundColor: isWindowsHovered || showWindowsMenu || isLogOnlyMode ? theme.colors.highlightBg : 'transparent',
+                                color: isWindowsHovered || showWindowsMenu || isLogOnlyMode ? theme.colors.highlightText : theme.colors.text,
                             }}
-                            aria-haspopup="true"
-                            aria-expanded={showWindowsMenu}
                         >
-                          [ Windows ▼ ]
-                        </span>
+                            <button
+                                onClick={onToggleLogOnlyMode}
+                                className="pl-1 pr-0 bg-transparent border-none"
+                                style={{
+                                    color: 'inherit',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                [ Windows
+                            </button>
+                            <button
+                                onClick={() => setShowWindowsMenu(p => !p)}
+                                className="pr-1 pl-1 bg-transparent border-none"
+                                style={{
+                                    color: 'inherit',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {showWindowsMenu ? '▲' : '▼'} ]
+                            </button>
+                        </div>
                         {showWindowsMenu && (
                             <div 
                                 className="absolute top-full left-0 p-1 min-w-[200px]" 
@@ -105,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
                     </div>
                 </div>
-                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE A! v.0.3</h1>
+                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI v.0.4</h1>
             </div>
             <div className="mt-2 pt-2 flex justify-between" style={{ borderTop: `1px solid ${theme.colors.accent1}` }}>
                 <span className="whitespace-pre">{`CHARACTER: ${characterName}`}</span>

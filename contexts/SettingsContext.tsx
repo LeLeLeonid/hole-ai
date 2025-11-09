@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Settings, TextSpeed, BackgroundStyle } from '../types';
+import { Settings, TextSpeed, BackgroundStyle, Difficulty, PlayerPath } from '../types';
 
 interface SettingsContextType {
   settings: Settings;
   setScale: (scale: number) => void;
   setTextSpeed: (speed: TextSpeed) => void;
   setBackground: (background: BackgroundStyle) => void;
-  setSettings: (settings: Settings) => void; // New function
+  setDifficulty: (difficulty: Difficulty) => void;
+  setPath: (path: PlayerPath) => void;
+  setIntroCompleted: (completed: boolean) => void;
+  setSettings: (settings: Settings) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -15,12 +18,16 @@ const defaultSettings: Settings = {
   scale: 1.0,
   textSpeed: 'normal',
   background: 'none',
+  difficulty: 'REALISTIC',
+  path: 'none',
+  introCompleted: false,
 };
 
 const getInitialSettings = (): Settings => {
   try {
     const storedSettings = localStorage.getItem('hole-ai-settings');
     if (storedSettings) {
+      // Merge stored settings with defaults to ensure all keys are present
       return { ...defaultSettings, ...JSON.parse(storedSettings) };
     }
   } catch (error) {
@@ -38,7 +45,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (error) {
       console.error("Failed to save settings to localStorage", error);
     }
-    // Apply scale to root element for responsive UI scaling
     document.documentElement.style.fontSize = `${settings.scale * 100}%`;
   }, [settings]);
 
@@ -53,14 +59,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setBackground = (background: BackgroundStyle) => {
     setSettingsState(s => ({ ...s, background }));
   };
+  
+  const setDifficulty = (difficulty: Difficulty) => {
+    setSettingsState(s => ({...s, difficulty }));
+  };
 
-  // New function to set the whole object
+  const setPath = (path: PlayerPath) => {
+    setSettingsState(s => ({ ...s, path }));
+  };
+
+  const setIntroCompleted = (completed: boolean) => {
+    setSettingsState(s => ({ ...s, introCompleted: completed }));
+  };
+
   const setSettings = (newSettings: Settings) => {
     setSettingsState(newSettings);
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setSettings }}>
+    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setDifficulty, setPath, setIntroCompleted, setSettings }}>
       {children}
     </SettingsContext.Provider>
   );

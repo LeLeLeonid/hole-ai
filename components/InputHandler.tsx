@@ -24,10 +24,11 @@ const ActionButton: React.FC<{onClick: () => void, disabled: boolean, children: 
     }
 
     return (
-        <span 
+        <button 
             onClick={!disabled ? onClick : undefined}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            disabled={disabled}
             style={{
                 backgroundColor: getBackgroundColor(),
                 color: getTextColor(),
@@ -37,7 +38,7 @@ const ActionButton: React.FC<{onClick: () => void, disabled: boolean, children: 
             className="px-2 py-1"
         >
             {children}
-        </span>
+        </button>
     )
 }
 
@@ -64,7 +65,14 @@ export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading
   };
 
   return (
-    <div className="p-2" style={{ border: `1px solid ${theme.colors.accent1}` }}>
+    <div className="relative p-2" style={{ 
+        border: `1px solid ${theme.colors.accent1}`
+    }}>
+        <span className="absolute -top-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+        <span className="absolute -top-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+        <span className="absolute -bottom-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+        <span className="absolute -bottom-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+        
         <div className="flex flex-wrap gap-2 mb-2">
             {suggestedActions.map((action, index) => (
                  <ActionButton 

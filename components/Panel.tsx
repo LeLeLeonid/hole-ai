@@ -11,12 +11,17 @@ export const Panel: React.FC<PanelProps> = ({ title, children, className }) => {
   const { theme } = useTheme();
   return (
     <div 
-      className={`flex flex-col overflow-hidden bg-opacity-50 ${className || ''}`}
+      className={`relative flex flex-col overflow-hidden bg-opacity-50 ${className || ''}`}
       style={{ 
         border: `1px solid ${theme.colors.accent1}`,
         backgroundColor: `rgba(${parseInt(theme.colors.bg.slice(1,3),16)}, ${parseInt(theme.colors.bg.slice(3,5),16)}, ${parseInt(theme.colors.bg.slice(5,7),16)}, 0.5)`
       }}
     >
+      <span className="absolute -top-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+      <span className="absolute -top-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+      <span className="absolute -bottom-px -left-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+      <span className="absolute -bottom-px -right-px" style={{ color: theme.colors.accent1, lineHeight: '1' }}>+</span>
+
       <h2 
         className="p-1 text-center flex-shrink-0"
         style={{

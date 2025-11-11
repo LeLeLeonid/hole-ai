@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -59,6 +60,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     isGameInProgress, 
     onResumeGame,
 }) => {
+    const t = useTranslation();
     return (
         <div className="flex-grow flex flex-col items-center justify-center p-4">
             <div className="mb-10">
@@ -66,12 +68,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </div>
             
             <div className="flex flex-col gap-4">
-                {isGameInProgress && <MenuButton onClick={onResumeGame}>RESUME</MenuButton>}
-                <MenuButton onClick={onNewGame}>NEW GAME</MenuButton>
-                <MenuButton onClick={onLoadGame}>LOAD GAME</MenuButton>
-                <MenuButton onClick={onCreatorTools}>CREATOR TOOLS / EDITOR</MenuButton>
-                <MenuButton onClick={onSettings}>SETTINGS</MenuButton>
-                <MenuButton onClick={() => alert("To exit, simply close the browser tab.")}>EXIT</MenuButton>
+                {isGameInProgress && <MenuButton onClick={onResumeGame}>{t('resume')}</MenuButton>}
+                <MenuButton onClick={onNewGame}>{t('newGame')}</MenuButton>
+                <MenuButton onClick={onLoadGame}>{t('loadGame')}</MenuButton>
+                <MenuButton onClick={onCreatorTools}>{t('creatorTools')}</MenuButton>
+                <MenuButton onClick={onSettings}>{t('settings')}</MenuButton>
+                <MenuButton onClick={() => alert(t('exitMessage'))}>{t('exit')}</MenuButton>
             </div>
         </div>
     );

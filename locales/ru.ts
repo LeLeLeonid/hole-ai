@@ -1,0 +1,165 @@
+export const ru = {
+    // Settings Menu
+    settingsTitle: '[ НАСТРОЙКИ ]',
+    theme: 'Тема',
+    language: 'Язык',
+    background: 'Фон',
+    scale: 'Масштаб',
+    textSpeed: 'Скорость текста',
+    difficulty: 'Сложность',
+    back: 'НАЗАД',
+    bgNightSky: 'Ночное небо',
+    bgMatrix: 'Матрица',
+    bgAscii: 'ASCII',
+    bgNone: 'Нет',
+    instant: 'Мгновенно',
+    fast: 'Быстро',
+    normal: 'Нормально',
+    easy: 'Легко',
+    realistic: 'Реалистично',
+    hard: 'Сложно',
+    apiKey: 'Ключ API Gemini',
+    apiKeyPlaceholder: 'Введите ваш ключ API (ENV, если пусто)',
+    clearApiKey: 'Очистить ключ API',
+
+    // Main Menu
+    resume: 'ПРОДОЛЖИТЬ',
+    newGame: 'НОВАЯ ИГРА',
+    loadGame: 'ЗАГРУЗИТЬ ИГРУ',
+    creatorTools: 'ИНСТРУМЕНТЫ / РЕДАКТОР',
+    settings: 'НАСТРОЙКИ',
+    exit: 'ВЫХОД',
+    exitMessage: 'Чтобы выйти, просто закройте вкладку браузера.',
+
+    // Header
+    mainMenu: 'Главное меню',
+    saveGame: 'Сохранить игру',
+    windows: 'Окна',
+    togglePanels: 'Переключить панели',
+    character: 'ПЕРСОНАЖ',
+    location: 'ЛОКАЦИЯ',
+    panelPov: 'ОТ ПЕРВОГО ЛИЦА',
+    panelMap: 'КАРТА',
+    panelInventory: 'Инвентарь',
+    panelStats: 'Характеристики',
+    panelNpcs: 'Союзники/NPC',
+
+    // Game Panels
+    pov: 'ОТ ПЕРВОГО ЛИЦА',
+    map: 'КАРТА',
+    inventory: 'Инвентарь',
+    stats: 'Характеристики',
+    npcs: 'Союзники/NPC',
+    log: 'ЛОГ',
+    inventoryEmpty: 'Ваши карманы пусты.',
+    details: 'Детали',
+    selectItemPrompt: 'Выберите предмет для просмотра деталей.',
+    npcsEmpty: 'Вы еще никого не встретили.',
+    selectNpcPrompt: 'Выберите персонажа для просмотра деталей.',
+
+    // Input Handler
+    inputPlaceholderLoading: '',
+    inputPlaceholder: 'Введите вашу команду...',
+
+    // Splash Screen
+    splashMessage1: 'Инициализация Гипер-Органического Игрового Опыта...',
+    splashMessage2: 'Подключение к Gemini Master...',
+    splashMessage3: 'Плетение нитей судьбы...',
+    splashMessage4: 'Калибровка ASCII-рендереров...',
+    splashMessage5: 'Готово.',
+    
+    // Load Menu
+    loadGameTitle: '[ ЗАГРУЗИТЬ ИГРУ ]',
+    loadGameFeedback: 'Выберите файл сохранения .json для загрузки.',
+    loadFromFile: 'ЗАГРУЗИТЬ ИЗ ФАЙЛА',
+    
+    // Creator Tools Menu
+    creatorToolsTitle: '[ ИНСТРУМЕНТЫ ]',
+    manageContent: 'УПРАВЛЕНИЕ КОНТЕНТОМ',
+
+    // Content Editor
+    contentManagerTitle: '[ МЕНЕДЖЕР КОНТЕНТА ]',
+    import: 'Импорт',
+    create: 'Создать',
+    manage: 'Управлять',
+    manageWithCount: 'Управлять ({0})',
+    importFromFile: 'Импорт из файла (.json, .png)',
+    fileSupportInfo: 'Карточки персонажей можно найти на:',
+    importFromUrl: 'Импорт по URL',
+    importFromUrlSoon: 'Импорт по URL (Скоро..)',
+    urlPlaceholder: 'https://chub.ai/characters/...',
+    importFromJson: 'Импорт из JSON текста',
+    jsonPlaceholder: 'Вставьте JSON карточки персонажа сюда...',
+    selectFile: 'ВЫБРАТЬ ФАЙЛ',
+    fetch: 'ЗАГРУЗИТЬ',
+    importText: 'ИМПОРТ ТЕКСТА',
+    charNamePlaceholder: 'Имя персонажа*',
+    descriptionPlaceholder: 'Описание',
+    scenarioPlaceholder: 'Сценарий / Сеттинг',
+    firstMesPlaceholder: 'Первое сообщение (Приветствие)',
+    saveAsScenario: 'СОХРАНИТЬ КАК СЦЕНАРИЙ',
+    saveAsCharacter: 'СОХРАНИТЬ КАК ПЕРСОНАЖА',
+    scenarios: 'Сценарии',
+    characters: 'Персонажи',
+    noScenarios: 'Пока нет сценариев.',
+    noCharacters: 'Пока нет персонажей.',
+    export: 'ЭКСПОРТ',
+    delete: 'УДАЛИТЬ',
+    classifyCard: 'Классифицировать импортированную карточку',
+    card: 'Карточка',
+    classifyPrompt: 'Как этот контент должен использоваться в игре?',
+    asScenario: 'Как СЦЕНАРИЙ',
+    asCharacter: 'Как ПЕРСОНАЖ',
+    cancel: 'ОТМЕНА',
+    feedback_processing: 'Обработка {0}...',
+    feedback_loaded: 'Загружено "{0}". Пожалуйста, классифицируйте.',
+    feedback_error: 'Ошибка: {0}',
+    feedback_success_added: 'Успех! "{0}" добавлено как {1}.',
+    feedback_card_name_required: 'У карточки должно быть имя.',
+    feedback_invalid_json: 'Ошибка: Неверный JSON текст.',
+    feedback_fetching: 'Загрузка по URL...',
+    
+    // Scenario Menu
+    chooseScenario: '[ ВЫБЕРИТЕ СЦЕНАРИЙ ]',
+    builtIn: 'Встроенные',
+    custom: 'Пользовательские',
+    importCreate: '[+] Импорт / Создать...',
+    selectScenarioPrompt: 'Выберите сценарий, чтобы увидеть его описание.',
+    generatingWorld: 'ГЕНЕРАЦИЯ МИРА...',
+    continue: 'ПРОДОЛЖИТЬ',
+
+    // Character Menu
+    chooseCharacter: '[ ВЫБЕРИТЕ ПЕРСОНАЖА ]',
+    forScenario: 'Для сценария',
+    selectCharacterPrompt: 'Выберите персонажа, чтобы увидеть его детали.',
+    startingStats: 'Начальные характеристики:',
+    startingInventory: 'Начальный инвентарь:',
+    startGame: 'НАЧАТЬ ИГРУ',
+    quickstart: 'БЫСТРЫЙ СТАРТ',
+
+    // Scenarios
+    scenario_tutorial_name: "Обучение",
+    scenario_tutorial_description: "Пустая бездна. Один проводник. Узнайте секреты HOLE AI.",
+    scenario_modern_name: "Современность",
+    scenario_modern_description: "2025 год. Политика в смятении, вспыхивают войны, надежда угасает.",
+    scenario_random_name: "Случайный",
+    scenario_random_description: "Где угодно, когда угодно, кто угодно. Полная непредсказуемость.",
+
+    // Characters
+    character_jax_name: "Джакс 'Глюк' Райли",
+    character_jax_description: "Мятежный нетраннер, который кинул своих корпоративных хозяев и теперь продает свои навыки тому, кто больше заплатит, в цифровом подполье. Он параноик, исключительно талантлив и выживает на диете из стимуляторов и чистой наглости.",
+    character_kael_name: "Каэлен \"Каэл\" Варр",
+    character_kael_description: "Опальный ксенолингвист, Каэл теперь скитается по окраинам известного космоса. Она ищет предвечный язык, который, по ее мнению, является исходным кодом вселенной — синтаксисом, способным переписать саму реальность. Ее разум — это гобелен из забытых диалектов и опасных космических истин.",
+    character_wanderer_name: "Странник",
+    character_wanderer_description: "Не рожденное, а сгустившееся. Сознание из безмолвной пустоты, обретшее форму в спасенном роботизированном шасси. Оно испытывает глубокое, почти болезненное любопытство к материальному миру и странным, мимолетным существам, называемым 'людьми'. У него нет понятия морали, только данные и опыт.",
+
+    // Intro
+    sideWithKeeper: '[ Примкнуть к Хранителю ]',
+    sideWithSynthesizer: '[ Примкнуть к Синтезатору ]',
+    skip: '[ПРОПУСТИТЬ]',
+
+    // useGameLoop 'see' command
+    seeFace: "Вы внимательно смотрите в лицо {0}.\n{1}", // {0} - имя, {1} - описание
+    seeClothing: "Вы осматриваете одежду {0}.\n{1}",
+    seeDescription: "Вы наблюдаете за {0}.\n{1}",
+};

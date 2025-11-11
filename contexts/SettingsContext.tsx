@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Settings, TextSpeed, BackgroundStyle, Difficulty, PlayerPath } from '../types';
+import { Settings, TextSpeed, BackgroundStyle, Difficulty, PlayerPath, Language } from '../types';
 
 interface SettingsContextType {
   settings: Settings;
@@ -10,6 +10,8 @@ interface SettingsContextType {
   setPath: (path: PlayerPath) => void;
   setIntroCompleted: (completed: boolean) => void;
   setSettings: (settings: Settings) => void;
+  setLanguage: (language: Language) => void;
+  setApiKey: (key: string | null) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -21,6 +23,8 @@ const defaultSettings: Settings = {
   difficulty: 'REALISTIC',
   path: 'none',
   introCompleted: false,
+  language: 'en',
+  apiKey: null,
 };
 
 const getInitialSettings = (): Settings => {
@@ -75,9 +79,17 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setSettings = (newSettings: Settings) => {
     setSettingsState(newSettings);
   };
+  
+  const setLanguage = (language: Language) => {
+    setSettingsState(s => ({...s, language }));
+  };
+
+  const setApiKey = (key: string | null) => {
+    setSettingsState(s => ({ ...s, apiKey: key }));
+  };
 
   return (
-    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setDifficulty, setPath, setIntroCompleted, setSettings }}>
+    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setDifficulty, setPath, setIntroCompleted, setSettings, setLanguage, setApiKey }}>
       {children}
     </SettingsContext.Provider>
   );

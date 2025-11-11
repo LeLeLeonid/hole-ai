@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useCustomContent } from '../hooks/useCustomContent';
 import type { CharaCardV3, CustomContentType } from '../types';
 import { processCardFile, processCardUrl } from '../services/cardService';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ContentEditorProps {
   onBack: () => void;
@@ -19,7 +20,7 @@ const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disa
         onMouseLeave={() => !disabled && setIsHovered(false)}
         disabled={disabled}
         style={{
-          backgroundColor: isHovered ? theme.colors.highlightBg : 'transparent',
+          backgroundColor: isHovered && !disabled ? theme.colors.highlightBg : 'transparent',
           color: disabled ? theme.colors.disabledText : (isHovered ? theme.colors.highlightText : theme.colors.text),
           cursor: disabled ? 'default' : 'pointer',
         }}
@@ -63,10 +64,17 @@ const cardTemplate: CharaCardV3 = {
   "create_date": new Date().toISOString().replace('T', ' @').replace('Z', ''),
 };
 
+const formatString = (str: string, ...args: string[]) => {
+  return str.replace(/{(\d+)}/g, (match, number) => {
+    return typeof args[number] != 'undefined' ? args[number] : match;
+  });
+};
+
 
 export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
   const { theme } = useTheme();
   const { customContent, addContent, removeContent } = useCustomContent();
+  const t = useTranslation();
   const [activeTab, setActiveTab] = useState<'import' | 'create' | 'manage'>('import');
   const [feedback, setFeedback] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,9 +93,9 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
 
   const handleCardLoaded = (card: CharaCardV3 | {error: string}) => {
       if ('error' in card) {
-          handleFeedback(`Error: ${card.error}`);
+          handleFeedback(formatString(t('feedback_error'), card.error));
       } else {
-          handleFeedback(`Loaded "${card.data.name}". Please classify it.`, 0);
+          handleFeedback(formatString(t('feedback_loaded'), card.data.name), 0);
           setPendingCard(card);
       }
   };
@@ -95,14 +103,14 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
   const handleSaveWithType = (type: CustomContentType) => {
     if (!pendingCard) return;
     addContent(pendingCard, type);
-    handleFeedback(`Success! "${pendingCard.data.name}" added as a ${type}.`);
+    handleFeedback(formatString(t('feedback_success_added'), pendingCard.data.name, type));
     setPendingCard(null);
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
-      handleFeedback(`Processing ${file.name}...`, 0);
+      handleFeedback(formatString(t('feedback_processing'), file.name), 0);
       const result = await processCardFile(file);
       handleCardLoaded(result);
       if (fileInputRef.current) fileInputRef.current.value = ''; // Reset file input
@@ -115,24 +123,24 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
           handleCardLoaded(parsed); // Let the service normalize it
           setJsonText('');
       } catch (e) {
-          handleFeedback("Error: Invalid JSON text.");
+          handleFeedback(t('feedback_invalid_json'));
       }
   };
   
   const handleUrlImport = async () => {
         if (!urlText.trim()) return;
-        handleFeedback(`Fetching from URL...`, 0);
+        handleFeedback(t('feedback_fetching'), 0);
         const result = await processCardUrl(urlText);
         handleCardLoaded(result);
   };
   
   const handleCreateCard = (type: CustomContentType) => {
         if (!newCard.data.name.trim()) {
-            handleFeedback("Card must have a name.");
+            handleFeedback(t('feedback_card_name_required'));
             return;
         }
         addContent(newCard, type);
-        handleFeedback(`Card "${newCard.data.name}" created as a ${type}!`);
+        handleFeedback(formatString(t('feedback_success_added'), newCard.data.name, type));
         setNewCard(JSON.parse(JSON.stringify(cardTemplate)));
   }
 
@@ -149,22 +157,22 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
   const renderImport = () => (
     <div className="space-y-6">
         <div>
-            <h3 className="text-xl mb-2">Import from File (.json, .png)</h3>
-            <p className="text-sm opacity-70 mb-2">You can find character cards at: <a href="https://aicharactercards.com/" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>aicharactercards.com</a>, <a href="https://chub.ai" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>chub.ai</a>, or <a href="https://character-tavern.com" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>character-tavern.com</a></p>
+            <h3 className="text-xl mb-2">{t('importFromFile')}</h3>
+            <p className="text-sm opacity-70 mb-2">{t('fileSupportInfo')} <a href="https://aicharactercards.com/" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>aicharactercards.com</a>, <a href="https://chub.ai" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>chub.ai</a>, or <a href="https://character-tavern.com" target="_blank" rel="noopener noreferrer" style={{color: theme.colors.accent2}}>character-tavern.com</a></p>
             <input type="file" accept=".json,.png,application/json" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-            <MenuButton onClick={() => fileInputRef.current?.click()}>SELECT FILE</MenuButton>
+            <MenuButton onClick={() => fileInputRef.current?.click()}>{t('selectFile')}</MenuButton>
         </div>
          <div>
-            <h3 className="text-xl mb-2">Import from URL</h3>
+            <h3 className="text-xl mb-2 opacity-50">{t('importFromUrlSoon')}</h3>
             <div className="flex gap-2">
-                 <input type="text" value={urlText} onChange={e => setUrlText(e.target.value)} placeholder="https://chub.ai/characters/..." className="flex-grow p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
-                 <MenuButton onClick={handleUrlImport}>FETCH</MenuButton>
+                 <input type="text" placeholder={t('urlPlaceholder')} className="flex-grow p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.disabledText, color: theme.colors.disabledText}} disabled />
+                 <MenuButton onClick={() => {}} disabled={true}>{t('fetch')}</MenuButton>
             </div>
         </div>
         <div>
-            <h3 className="text-xl mb-2">Import from JSON Text</h3>
-            <textarea value={jsonText} onChange={e => setJsonText(e.target.value)} rows={5} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} placeholder="Paste character card JSON here..." />
-            <MenuButton onClick={handleJsonPaste}>IMPORT TEXT</MenuButton>
+            <h3 className="text-xl mb-2">{t('importFromJson')}</h3>
+            <textarea value={jsonText} onChange={e => setJsonText(e.target.value)} rows={5} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} placeholder={t('jsonPlaceholder')} />
+            <MenuButton onClick={handleJsonPaste}>{t('importText')}</MenuButton>
         </div>
     </div>
   );
@@ -182,13 +190,13 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
     };
     return (
     <div className="space-y-4">
-        <input type="text" placeholder="Character Name*" value={newCard.data.name} onChange={e => handleDataChange('name', e.target.value)} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
-        <textarea placeholder="Description" value={newCard.data.description} onChange={e => handleDataChange('description', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
-        <textarea placeholder="Scenario / Setting" value={newCard.data.scenario} onChange={e => handleDataChange('scenario', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
-        <textarea placeholder="First Message (Greeting)" value={newCard.data.first_mes} onChange={e => handleDataChange('first_mes', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
+        <input type="text" placeholder={t('charNamePlaceholder')} value={newCard.data.name} onChange={e => handleDataChange('name', e.target.value)} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
+        <textarea placeholder={t('descriptionPlaceholder')} value={newCard.data.description} onChange={e => handleDataChange('description', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
+        <textarea placeholder={t('scenarioPlaceholder')} value={newCard.data.scenario} onChange={e => handleDataChange('scenario', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
+        <textarea placeholder={t('firstMesPlaceholder')} value={newCard.data.first_mes} onChange={e => handleDataChange('first_mes', e.target.value)} rows={3} className="w-full p-2 bg-black bg-opacity-30 border" style={{borderColor: theme.colors.accent1}} />
         <div className="flex gap-4">
-            <MenuButton onClick={() => handleCreateCard('scenario')}>SAVE AS SCENARIO</MenuButton>
-            <MenuButton onClick={() => handleCreateCard('character')}>SAVE AS CHARACTER</MenuButton>
+            <MenuButton onClick={() => handleCreateCard('scenario')}>{t('saveAsScenario')}</MenuButton>
+            <MenuButton onClick={() => handleCreateCard('character')}>{t('saveAsCharacter')}</MenuButton>
         </div>
     </div>
   )};
@@ -197,11 +205,11 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
     const scenarios = customContent.filter(item => item.type === 'scenario');
     const characters = customContent.filter(item => item.type === 'character');
     
-    const renderList = (items: typeof scenarios, title: string) => (
+    const renderList = (items: typeof scenarios, titleKey: 'scenarios' | 'characters') => (
         <div className="flex-1 flex flex-col min-w-0">
-            <h3 className="text-2xl mb-2 text-center" style={{color: theme.colors.accent2}}>-=[ {title} ]=-</h3>
+            <h3 className="text-2xl mb-2 text-center" style={{color: theme.colors.accent2}}>-=[ {t(titleKey)} ]=-</h3>
             <div className="flex-grow p-2 overflow-y-auto" style={{border: `1px solid ${theme.colors.accent1}`}}>
-                 {items.length === 0 ? <p className="text-center opacity-50">No {title.toLowerCase()} yet.</p> : (
+                 {items.length === 0 ? <p className="text-center opacity-50">{t(titleKey === 'scenarios' ? 'noScenarios' : 'noCharacters')}</p> : (
                     <ul className="space-y-2">
                         {items.map(item => (
                             <li key={item.card.data.name} className="p-2 flex justify-between items-center" style={{border: `1px solid ${theme.colors.disabledText}`}}>
@@ -210,8 +218,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
                                     <p className="text-sm opacity-70">{item.card.data.description.substring(0, 50)}...</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <MenuButton onClick={() => exportCard(item.card)}>EXPORT</MenuButton>
-                                    <MenuButton onClick={() => removeContent(item.card.data.name)}>DELETE</MenuButton>
+                                    <MenuButton onClick={() => exportCard(item.card)}>{t('export')}</MenuButton>
+                                    <MenuButton onClick={() => removeContent(item.card.data.name)}>{t('delete')}</MenuButton>
                                 </div>
                             </li>
                         ))}
@@ -223,8 +231,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
 
     return (
         <div className="flex gap-4 h-full">
-            {renderList(scenarios, "Scenarios")}
-            {renderList(characters, "Characters")}
+            {renderList(scenarios, "scenarios")}
+            {renderList(characters, "characters")}
         </div>
     );
   };
@@ -233,13 +241,13 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
     if (pendingCard) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center">
-                <h2 className="text-2xl mb-4">Classify Imported Card</h2>
-                <p className="mb-2">Card: <span style={{color: theme.colors.accent2}}>{pendingCard.data.name}</span></p>
-                <p className="mb-6">How should this content be used in the game?</p>
+                <h2 className="text-2xl mb-4">{t('classifyCard')}</h2>
+                <p className="mb-2">{t('card')}: <span style={{color: theme.colors.accent2}}>{pendingCard.data.name}</span></p>
+                <p className="mb-6">{t('classifyPrompt')}</p>
                 <div className="flex gap-4">
-                    <MenuButton onClick={() => handleSaveWithType('scenario')}>As a SCENARIO</MenuButton>
-                    <MenuButton onClick={() => handleSaveWithType('character')}>As a CHARACTER</MenuButton>
-                    <MenuButton onClick={() => setPendingCard(null)}>CANCEL</MenuButton>
+                    <MenuButton onClick={() => handleSaveWithType('scenario')}>{t('asScenario')}</MenuButton>
+                    <MenuButton onClick={() => handleSaveWithType('character')}>{t('asCharacter')}</MenuButton>
+                    <MenuButton onClick={() => setPendingCard(null)}>{t('cancel')}</MenuButton>
                 </div>
             </div>
         )
@@ -255,14 +263,14 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl tracking-widest mb-4" style={{ color: theme.colors.accent1 }}>[ CONTENT MANAGER ]</h1>
+      <h1 className="text-4xl tracking-widest mb-4" style={{ color: theme.colors.accent1 }}>{t('contentManagerTitle')}</h1>
       
       <div className="w-full max-w-5xl flex-grow flex flex-col mb-4">
         {!pendingCard && (
             <div className="flex gap-4 mb-4 border-b" style={{borderColor: theme.colors.accent1}}>
-                <TabButton isActive={activeTab === 'import'} onClick={() => setActiveTab('import')}>Import</TabButton>
-                <TabButton isActive={activeTab === 'create'} onClick={() => setActiveTab('create')}>Create</TabButton>
-                <TabButton isActive={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>Manage ({customContent.length})</TabButton>
+                <TabButton isActive={activeTab === 'import'} onClick={() => setActiveTab('import')}>{t('import')}</TabButton>
+                <TabButton isActive={activeTab === 'create'} onClick={() => setActiveTab('create')}>{t('create')}</TabButton>
+                <TabButton isActive={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>{formatString(t('manageWithCount'), customContent.length.toString())}</TabButton>
             </div>
         )}
         <div className="flex-grow p-4 overflow-y-auto" style={{border: `1px solid ${theme.colors.accent1}`}}>
@@ -276,7 +284,7 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ onBack }) => {
       </div>
 
       <div className="flex gap-4 mt-2">
-        <MenuButton onClick={onBack} disabled={!!pendingCard}>BACK</MenuButton>
+        <MenuButton onClick={onBack} disabled={!!pendingCard}>{t('back')}</MenuButton>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { BUILT_IN_SCENARIOS, RANDOM_SCENARIO_TEMPLATE } from '../scenarios';
 import type { Scenario, CharaCardV3 } from '../types';
 import { useCustomContent } from '../hooks/useCustomContent';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ScenarioMenuProps {
   onSelect: (selection: Scenario | CharaCardV3) => void;
@@ -36,47 +37,57 @@ const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disa
 export const ScenarioMenu: React.FC<ScenarioMenuProps> = ({ onSelect, onBack, onAddScenario, isGenerating }) => {
   const { theme } = useTheme();
   const { customContent } = useCustomContent();
+  const t = useTranslation();
   
   const allScenarios = [...BUILT_IN_SCENARIOS, RANDOM_SCENARIO_TEMPLATE];
   const customScenarios = customContent.filter(item => item.type === 'scenario');
   
   const [selected, setSelected] = useState<Scenario | CharaCardV3 | null>(null);
 
-  const getSelectionName = (selection: Scenario | CharaCardV3) => 'spec' in selection ? selection.data.name : selection.name;
-  const getSelectionDescription = (selection: Scenario | CharaCardV3) => 'spec' in selection ? selection.data.scenario || selection.data.description : selection.description;
+  const getSelectionName = (selection: Scenario | CharaCardV3) => {
+    if ('spec' in selection) return selection.data.name;
+    const key = `scenario_${selection.name.toLowerCase()}_name` as keyof ReturnType<typeof useTranslation>;
+    return t(key);
+  }
+  
+  const getSelectionDescription = (selection: Scenario | CharaCardV3) => {
+    if ('spec' in selection) return selection.data.scenario || selection.data.description;
+    const key = `scenario_${selection.name.toLowerCase()}_description` as keyof ReturnType<typeof useTranslation>;
+    return t(key);
+  }
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl tracking-widest mb-8" style={{ color: theme.colors.accent1 }}>[ CHOOSE SCENARIO ]</h1>
+      <h1 className="text-4xl tracking-widest mb-8" style={{ color: theme.colors.accent1 }}>{t('chooseScenario')}</h1>
       
       <div className="w-full max-w-4xl h-80 flex gap-4 mb-8">
         {/* Scenario List */}
         <div className="flex-1 overflow-y-auto" style={{ border: `1px solid ${theme.colors.accent1}` }}>
-            <div className="p-2 opacity-70">Built-in</div>
+            <div className="p-2 opacity-70">{t('builtIn')}</div>
             {allScenarios.map(sc => (
                 <div
                     key={sc.name}
                     onClick={() => !isGenerating && setSelected(sc)}
                     className="p-2 cursor-pointer"
                     style={{
-                        backgroundColor: selected && getSelectionName(selected) === sc.name ? theme.colors.highlightBg : 'transparent',
-                        color: selected && getSelectionName(selected) === sc.name ? theme.colors.highlightText : theme.colors.text,
+                        backgroundColor: selected && !('spec' in selected) && selected.name === sc.name ? theme.colors.highlightBg : 'transparent',
+                        color: selected && !('spec' in selected) && selected.name === sc.name ? theme.colors.highlightText : theme.colors.text,
                         opacity: isGenerating ? 0.5 : 1,
                     }}
                 >
-                    <h3 className="text-xl">{sc.name}</h3>
+                    <h3 className="text-xl">{t(`scenario_${sc.name.toLowerCase()}_name` as keyof ReturnType<typeof useTranslation>)}</h3>
                 </div>
             ))}
 
-            {customScenarios.length > 0 && <div className="p-2 opacity-70 mt-4">Custom</div>}
+            {customScenarios.length > 0 && <div className="p-2 opacity-70 mt-4">{t('custom')}</div>}
             {customScenarios.map(item => (
                  <div
                     key={item.card.data.name}
                     onClick={() => !isGenerating && setSelected(item.card)}
                     className="p-2 cursor-pointer"
                     style={{
-                        backgroundColor: selected && getSelectionName(selected) === item.card.data.name ? theme.colors.highlightBg : 'transparent',
-                        color: selected && getSelectionName(selected) === item.card.data.name ? theme.colors.highlightText : theme.colors.text,
+                        backgroundColor: selected && 'spec' in selected && selected.data.name === item.card.data.name ? theme.colors.highlightBg : 'transparent',
+                        color: selected && 'spec' in selected && selected.data.name === item.card.data.name ? theme.colors.highlightText : theme.colors.text,
                         opacity: isGenerating ? 0.5 : 1,
                     }}
                 >
@@ -91,7 +102,7 @@ export const ScenarioMenu: React.FC<ScenarioMenuProps> = ({ onSelect, onBack, on
                     color: theme.colors.accent2,
                 }}
             >
-                <h3 className="text-xl">[+] Import / Create...</h3>
+                <h3 className="text-xl">{t('importCreate')}</h3>
             </div>
         </div>
         {/* Scenario Details */}
@@ -102,16 +113,16 @@ export const ScenarioMenu: React.FC<ScenarioMenuProps> = ({ onSelect, onBack, on
                     <p className="mt-2 whitespace-pre-wrap">{getSelectionDescription(selected)}</p>
                 </div>
             ) : (
-                <p className="text-center" style={{color: theme.colors.disabledText}}>Select a scenario to see its description.</p>
+                <p className="text-center" style={{color: theme.colors.disabledText}}>{t('selectScenarioPrompt')}</p>
             )}
         </div>
       </div>
 
       <div className="flex gap-4 mt-2">
         <MenuButton onClick={() => selected && onSelect(selected)} disabled={!selected || isGenerating}>
-            {isGenerating ? 'GENERATING WORLD...' : 'CONTINUE'}
+            {isGenerating ? t('generatingWorld') : t('continue')}
         </MenuButton>
-        <MenuButton onClick={onBack} disabled={isGenerating}>BACK</MenuButton>
+        <MenuButton onClick={onBack} disabled={isGenerating}>{t('back')}</MenuButton>
       </div>
     </div>
   );

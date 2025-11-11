@@ -11,7 +11,7 @@ import { InputHandler } from './components/InputHandler';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Panel } from './components/Panel';
 import { PovPanel, PlayerStatsPanel, InventoryPanel, NpcPanel, GameScreen } from './components/GamePanels';
-import { generateRandomScenario, generateScenarioFromCard } from './services/geminiService';
+import { generateRandomScenario, generateScenarioFromCard, generateScenarioFromBuiltIn } from './services/geminiService';
 import { SplashScreen } from './components/SplashScreen';
 import { IntroSequence } from './components/IntroSequence';
 import { LoadMenu } from './components/LoadMenu';
@@ -19,18 +19,38 @@ import { CreatorToolsMenu } from './components/CreatorToolsMenu';
 import { ScenarioMenu } from './components/ScenarioMenu';
 import { CharacterMenu } from './components/CharacterMenu';
 import { ContentEditor } from './components/ContentEditor';
+import { useTranslation } from './hooks/useTranslation';
 
 type AppScreen = 'loading' | 'intro' | 'splash' | 'main-menu' | 'settings' | 'load-game' | 'game' | 'new-game-scenario' | 'new-game-character' | 'creator-tools' | 'content-editor';
 
 const App: React.FC = () => {
     const { theme, setTheme } = useTheme();
     const { settings, setSettings, setPath, setIntroCompleted } = useSettings();
+    const t = useTranslation();
     const [screen, setScreen] = useState<AppScreen>('loading');
     const [settingsReturnScreen, setSettingsReturnScreen] = useState<AppScreen>('main-menu');
     const { gameState, setGameState, processPlayerCommand, isLoading, startGame } = useGameLoop();
     const [isGeneratingScenario, setIsGeneratingScenario] = useState(false);
     const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
     const [selectedCard, setSelectedCard] = useState<CharaCardV3 | null>(null);
+    const [panels, setPanels] = useState<Record<PanelId, PanelState>>({
+        pov: { id: 'pov', title: t('pov'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
+        map: { id: 'map', title: t('map'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
+        inventory: { id: 'inventory', title: t('inventory'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
+        stats: { id: 'stats', title: t('stats'), isOpen: false, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
+        npcs: { id: 'npcs', title: t('npcs'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
+    });
+
+    useEffect(() => {
+        setPanels({
+            pov: { ...panels.pov, title: t('pov') },
+            map: { ...panels.map, title: t('map') },
+            inventory: { ...panels.inventory, title: t('inventory') },
+            stats: { ...panels.stats, title: t('stats') },
+            npcs: { ...panels.npcs, title: t('npcs') },
+        });
+    }, [t]);
+
 
     useEffect(() => {
         if (screen === 'loading') {
@@ -43,13 +63,6 @@ const App: React.FC = () => {
     }, [settings, screen]);
 
 
-    const [panels, setPanels] = useState<Record<PanelId, PanelState>>({
-        pov: { id: 'pov', title: 'POV', isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        map: { id: 'map', title: 'MAP', isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        inventory: { id: 'inventory', title: 'Inventory', isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        stats: { id: 'stats', title: 'Stats', isOpen: false, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        npcs: { id: 'npcs', title: 'Allies/NPCs', isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-    });
     
     const [isLogOnlyMode, setIsLogOnlyMode] = useState(false);
 
@@ -89,42 +102,63 @@ const App: React.FC = () => {
     const handleCharacterSelect = async (character: Character) => {
         let finalState: GameState | null = null;
     
-        setIsGeneratingScenario(true); // Set loading state at the beginning
+        setIsGeneratingScenario(true);
     
         if (selectedCard) {
-            // Custom scenario path: generate world from card + selected character
+            // Custom scenario card path: generate world from card + selected character
             finalState = await generateScenarioFromCard(selectedCard, character, settings);
         } else if (selectedScenario) {
-            // Built-in scenario path
-            if (selectedScenario.name === "Random") {
-                const generatedState = await generateRandomScenario(character, settings);
-                if (generatedState) {
-                    finalState = {
-                        ...generatedState,
-                        player: character,
-                    };
-                } else {
-                    console.error("Failed to generate random scenario.");
-                }
-            } else {
-                finalState = {
-                    ...(selectedScenario.initialState as GameState),
-                    player: character,
-                    scenario: { name: selectedScenario.name, description: selectedScenario.description },
-                    turn: 1,
+             if (selectedScenario.name === "Tutorial") {
+                // TUTORIAL PATH: Use a deterministic, predefined state for a consistent learning experience.
+                const tutorialState = { ...selectedScenario.initialState };
+                // Inject the chosen character's data into the predefined state, but keep the tutorial's POV.
+                tutorialState.player = {
+                    ...character,
+                    pov: selectedScenario.initialState.player.pov,
                 };
+                finalState = tutorialState as GameState;
+            } else if (selectedScenario.name === "Random") {
+                // RANDOM SCENARIO PATH: Generate everything from scratch via AI.
+                finalState = await generateRandomScenario(character, settings);
+            } else {
+                // OTHER BUILT-IN SCENARIOS: Generate a randomized start based on the theme via AI.
+                finalState = await generateScenarioFromBuiltIn(selectedScenario, character, settings);
             }
         } else {
             console.error("handleCharacterSelect called without a selected scenario or card.");
         }
         
-        setIsGeneratingScenario(false); // Unset loading state at the end
+        setIsGeneratingScenario(false);
     
         if (finalState) {
             await startGame(finalState);
             setScreen('game');
         } else {
             // Common error handling for failed generation
+            alert("Failed to start the game. The Gemini Master may be busy.");
+        }
+    };
+    
+    const handleQuickstart = async () => {
+        setIsGeneratingScenario(true);
+        
+        // A special template character that tells the service to generate one from scratch
+        const randomCharacterTemplate: Character = {
+            name: "Random",
+            description: "A character to be generated from scratch by the AI.",
+            inventory: [],
+            stats: {},
+            pov: ""
+        };
+
+        const generatedState = await generateRandomScenario(randomCharacterTemplate, settings);
+        
+        setIsGeneratingScenario(false);
+
+        if (generatedState) {
+            await startGame(generatedState);
+            setScreen('game');
+        } else {
             alert("Failed to start the game. The Gemini Master may be busy.");
         }
     };
@@ -221,7 +255,7 @@ const App: React.FC = () => {
                             </div>
                         )}
                         <div className={panels.pov.isOpen ? "h-1/4" : "h-full"}>
-                            <Panel title="LOG" className="h-full">
+                            <Panel title={t('log')} className="h-full">
                                 <GameLog log={gameState.log} />
                             </Panel>
                         </div>
@@ -282,7 +316,7 @@ const App: React.FC = () => {
                     setScreen('new-game-scenario'); // Should not happen, but as a fallback
                     return null;
                 }
-                return <CharacterMenu scenario={selectedScenario} onSelect={handleCharacterSelect} onBack={() => setScreen('new-game-scenario')} isGenerating={isGeneratingScenario} />;
+                return <CharacterMenu scenario={selectedScenario} onSelect={handleCharacterSelect} onBack={() => setScreen('new-game-scenario')} isGenerating={isGeneratingScenario} onQuickstart={handleQuickstart} />;
             case 'settings':
                 return <SettingsMenu onBack={() => setScreen(settingsReturnScreen)} />;
             case 'load-game':

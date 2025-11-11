@@ -2,6 +2,7 @@ export type TextSpeed = 'instant' | 'fast' | 'normal';
 export type BackgroundStyle = 'night-sky' | 'matrix' | 'ascii' | 'none';
 export type Difficulty = 'EASY' | 'REALISTIC' | 'HARD';
 export type PlayerPath = 'keeper' | 'synthesizer' | 'none';
+export type Language = 'en' | 'ru';
 
 export interface Settings {
     scale: number;
@@ -10,6 +11,8 @@ export interface Settings {
     difficulty: Difficulty;
     path: PlayerPath;
     introCompleted: boolean;
+    language: Language;
+    apiKey: string | null;
 }
 
 export interface Theme {

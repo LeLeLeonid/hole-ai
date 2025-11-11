@@ -3,12 +3,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { PREDEFINED_CHARACTERS } from '../characters';
 import type { Scenario, Character, CharaCardV3 } from '../types';
 import { useCustomContent } from '../hooks/useCustomContent';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CharacterMenuProps {
   scenario: Scenario;
   onSelect: (character: Character) => void;
   onBack: () => void;
   isGenerating: boolean;
+  onQuickstart: () => void;
 }
 
 const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disabled?: boolean}> = ({ onClick, children, disabled }) => {
@@ -42,10 +44,19 @@ const mapCardToCharacter = (card: CharaCardV3): Character => ({
   pov: card.data.first_mes || `Awaiting perspective for ${card.data.name}.`,
 });
 
+// Helper function outside the component for robustness
+const getCharacterKey = (name: string): string | null => {
+    if (name.includes('Jax')) return 'jax';
+    if (name.includes('Kaelen')) return 'kael';
+    if (name.includes('Wanderer')) return 'wanderer';
+    return null;
+};
 
-export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect, onBack, isGenerating }) => {
+
+export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect, onBack, isGenerating, onQuickstart }) => {
   const { theme } = useTheme();
   const { customContent } = useCustomContent();
+  const t = useTranslation();
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   
   const allCharacters = useMemo(() => {
@@ -55,16 +66,30 @@ export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect
     return [...PREDEFINED_CHARACTERS, ...customCharacters];
   }, [customContent]);
 
-  const handleQuickstart = () => {
-    if (allCharacters.length === 0) return;
-    const randomChar = allCharacters[Math.floor(Math.random() * allCharacters.length)];
-    onSelect(randomChar);
+  const getTranslatedCharacter = (char: Character) => {
+    // Only translate if it's one of the original, predefined characters
+    if (PREDEFINED_CHARACTERS.some(predefined => predefined.name === char.name)) {
+      const keyBase = getCharacterKey(char.name);
+      if (keyBase) {
+        return {
+          ...char,
+          name: t(`character_${keyBase}_name` as any),
+          description: t(`character_${keyBase}_description` as any),
+        };
+      }
+    }
+    return char;
   };
+
+  const selectedTranslatedChar = selectedChar ? getTranslatedCharacter(selectedChar) : null;
+
+  const scenarioNameKey = `scenario_${scenario.name.toLowerCase()}_name` as any;
+
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl tracking-widest mb-2" style={{ color: theme.colors.accent1 }}>[ CHOOSE CHARACTER ]</h1>
-      <p className="text-xl mb-6" style={{ color: theme.colors.accent2 }}>For Scenario: {scenario.name}</p>
+      <h1 className="text-4xl tracking-widest mb-2" style={{ color: theme.colors.accent1 }}>{t('chooseCharacter')}</h1>
+      <p className="text-xl mb-6" style={{ color: theme.colors.accent2 }}>{t('forScenario')}: {t(scenarioNameKey)}</p>
       
       <div className="w-full max-w-4xl h-80 flex gap-4 mb-8">
         {/* Character List */}
@@ -80,39 +105,39 @@ export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect
                         opacity: isGenerating ? 0.5 : 1,
                     }}
                 >
-                    <h3 className="text-xl">{char.name}</h3>
+                    <h3 className="text-xl">{getTranslatedCharacter(char).name}</h3>
                 </div>
             ))}
         </div>
         {/* Character Details */}
         <div className="flex-[2] p-2 overflow-y-auto" style={{ border: `1px solid ${theme.colors.accent1}` }}>
-            {selectedChar ? (
+            {selectedTranslatedChar ? (
                 <div>
-                    <h2 className="text-2xl" style={{color: theme.colors.accent2}}>{selectedChar.name}</h2>
-                    <p className="my-2 whitespace-pre-wrap">{selectedChar.description}</p>
-                    <h4 className="mt-4">Starting Stats:</h4>
+                    <h2 className="text-2xl" style={{color: theme.colors.accent2}}>{selectedTranslatedChar.name}</h2>
+                    <p className="my-2 whitespace-pre-wrap">{selectedTranslatedChar.description}</p>
+                    <h4 className="mt-4">{t('startingStats')}</h4>
                     <ul className="list-disc list-inside">
-                        {Object.entries(selectedChar.stats).map(([key, value]) => <li key={key}>{key}: {value}</li>)}
+                        {Object.entries(selectedTranslatedChar.stats).map(([key, value]) => <li key={key}>{key}: {value}</li>)}
                     </ul>
-                     <h4 className="mt-4">Starting Inventory:</h4>
+                     <h4 className="mt-4">{t('startingInventory')}</h4>
                     <ul className="list-disc list-inside">
-                        {selectedChar.inventory.map(item => <li key={item.name}>{item.name}</li>)}
+                        {selectedTranslatedChar.inventory.map(item => <li key={item.name}>{item.name}</li>)}
                     </ul>
                 </div>
             ) : (
-                <p className="text-center" style={{color: theme.colors.disabledText}}>Select a character to see their details.</p>
+                <p className="text-center" style={{color: theme.colors.disabledText}}>{t('selectCharacterPrompt')}</p>
             )}
         </div>
       </div>
 
       <div className="flex gap-4 mt-2">
         <MenuButton onClick={() => selectedChar && onSelect(selectedChar)} disabled={!selectedChar || isGenerating}>
-            {isGenerating ? 'GENERATING WORLD...' : 'START GAME'}
+            {isGenerating ? t('generatingWorld') : t('startGame')}
         </MenuButton>
-        <MenuButton onClick={handleQuickstart} disabled={isGenerating}>
-            QUICKSTART
+        <MenuButton onClick={onQuickstart} disabled={isGenerating}>
+            {t('quickstart')}
         </MenuButton>
-        <MenuButton onClick={onBack} disabled={isGenerating}>BACK</MenuButton>
+        <MenuButton onClick={onBack} disabled={isGenerating}>{t('back')}</MenuButton>
       </div>
     </div>
   );

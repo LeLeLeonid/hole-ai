@@ -1,8 +1,19 @@
 import { useState, useCallback } from 'react';
 import type { GameState, Settings } from '../types';
 import { getGameUpdate } from '../services/geminiService';
+import { en } from '../locales/en';
+import { ru } from '../locales/ru';
 
 const MAX_LOG_ENTRIES = 200;
+const translations = { en, ru };
+
+// Helper to format strings like "You see {0}"
+const formatString = (str: string, ...args: string[]) => {
+  return str.replace(/{(\d+)}/g, (match, number) => {
+    return typeof args[number] != 'undefined' ? args[number] : match;
+  });
+};
+
 
 export const useGameLoop = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -17,6 +28,7 @@ export const useGameLoop = () => {
   const processPlayerCommand = useCallback(async (command: string, settings: Settings) => {
     if (!gameState) return;
 
+    const t = (key: keyof typeof en) => translations[settings.language][key] || en[key];
     const trimmedCommand = command.trim();
     if (!trimmedCommand) return;
 
@@ -35,11 +47,11 @@ export const useGameLoop = () => {
         const displayName = npc.isNameKnown ? npc.name : npc.knownAs;
         let narration = '';
         if (detail === 'face') {
-          narration = `You look closely at ${displayName}'s face.\n${npc.faceDescription}`;
+          narration = formatString(t('seeFace'), displayName, npc.faceDescription);
         } else if (detail === 'clothing') {
-          narration = `You examine ${displayName}'s clothing.\n${npc.clothingDescription}`;
+          narration = formatString(t('seeClothing'), displayName, npc.clothingDescription);
         } else {
-          narration = `You observe ${displayName}.\n${npc.description}`;
+          narration = formatString(t('seeDescription'), displayName, npc.description);
         }
         
         if (npc.notes.length > 0) {
@@ -72,9 +84,12 @@ export const useGameLoop = () => {
       setGameState(newState);
     } else {
       // Handle API error
+       const errorMsg = settings.language === 'ru'
+          ? "Странная энергия потрескивает, и мир, кажется, замирает. (Ошибка подключения к Gemini Master)"
+          : "A strange energy crackles, and the world seems to pause. (Error connecting to the Gemini Master)";
       setGameState(prev => prev ? {
         ...prev,
-        log: [...prev.log, "A strange energy crackles, and the world seems to pause. (Error connecting to the Gemini Master)"].slice(-MAX_LOG_ENTRIES)
+        log: [...prev.log, errorMsg].slice(-MAX_LOG_ENTRIES)
       } : null);
     }
     setIsLoading(false);

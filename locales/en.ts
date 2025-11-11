@@ -1,0 +1,166 @@
+export const en = {
+    // Settings Menu
+    settingsTitle: '[ SETTINGS ]',
+    theme: 'Theme',
+    language: 'Language',
+    background: 'Background',
+    scale: 'Scale',
+    textSpeed: 'Text Speed',
+    difficulty: 'Difficulty',
+    back: 'BACK',
+    bgNightSky: 'Night Sky',
+    bgMatrix: 'Matrix',
+    bgAscii: 'ASCII',
+    bgNone: 'None',
+    instant: 'Instant',
+    fast: 'Fast',
+    normal: 'Normal',
+    easy: 'Easy',
+    realistic: 'Realistic',
+    hard: 'Hard',
+    apiKey: 'Gemini API Key',
+    apiKeyPlaceholder: 'Enter your API key here (uses ENV if empty)',
+    clearApiKey: 'Clear API Key',
+    
+    // Main Menu
+    resume: 'RESUME',
+    newGame: 'NEW GAME',
+    loadGame: 'LOAD GAME',
+    creatorTools: 'CREATOR TOOLS / EDITOR',
+    settings: 'SETTINGS',
+    exit: 'EXIT',
+    exitMessage: 'To exit, simply close the browser tab.',
+
+    // Header
+    mainMenu: 'Main Menu',
+    saveGame: 'Save Game',
+    windows: 'Windows',
+    togglePanels: 'Toggle Panels',
+    character: 'CHARACTER',
+    location: 'LOCATION',
+    panelPov: 'POV',
+    panelMap: 'MAP',
+    panelInventory: 'Inventory',
+    panelStats: 'Stats',
+    panelNpcs: 'Allies/NPCs',
+
+    // Game Panels
+    pov: 'POV',
+    map: 'MAP',
+    inventory: 'Inventory',
+    stats: 'Stats',
+    npcs: 'Allies/NPCs',
+    log: 'LOG',
+    inventoryEmpty: 'Your pockets are empty.',
+    details: 'Details',
+    selectItemPrompt: 'Select an item to view its details.',
+    npcsEmpty: 'You haven\'t met anyone yet.',
+    selectNpcPrompt: 'Select a character to view details.',
+
+
+    // Input Handler
+    inputPlaceholderLoading: '',
+    inputPlaceholder: 'Enter your command...',
+
+    // Splash Screen
+    splashMessage1: 'Initializing Hyper-Organic Ludic Experience...',
+    splashMessage2: 'Connecting to Gemini Master...',
+    splashMessage3: 'Weaving threads of fate...',
+    splashMessage4: 'Calibrating ASCII renderers...',
+    splashMessage5: 'Done.',
+
+    // Load Menu
+    loadGameTitle: '[ LOAD GAME ]',
+    loadGameFeedback: 'Select a .json save file to load.',
+    loadFromFile: 'LOAD FROM FILE',
+
+    // Creator Tools Menu
+    creatorToolsTitle: '[ CREATOR TOOLS ]',
+    manageContent: 'MANAGE CONTENT',
+
+    // Content Editor
+    contentManagerTitle: '[ CONTENT MANAGER ]',
+    import: 'Import',
+    create: 'Create',
+    manage: 'Manage',
+    manageWithCount: 'Manage ({0})',
+    importFromFile: 'Import from File (.json, .png)',
+    fileSupportInfo: 'You can find character cards at:',
+    importFromUrl: 'Import from URL',
+    importFromUrlSoon: 'Import from URL (Soon..)',
+    urlPlaceholder: 'https://chub.ai/characters/...',
+    importFromJson: 'Import from JSON Text',
+    jsonPlaceholder: 'Paste character card JSON here...',
+    selectFile: 'SELECT FILE',
+    fetch: 'FETCH',
+    importText: 'IMPORT TEXT',
+    charNamePlaceholder: 'Character Name*',
+    descriptionPlaceholder: 'Description',
+    scenarioPlaceholder: 'Scenario / Setting',
+    firstMesPlaceholder: 'First Message (Greeting)',
+    saveAsScenario: 'SAVE AS SCENARIO',
+    saveAsCharacter: 'SAVE AS CHARACTER',
+    scenarios: 'Scenarios',
+    characters: 'Characters',
+    noScenarios: 'No scenarios yet.',
+    noCharacters: 'No characters yet.',
+    export: 'EXPORT',
+    delete: 'DELETE',
+    classifyCard: 'Classify Imported Card',
+    card: 'Card',
+    classifyPrompt: 'How should this content be used in the game?',
+    asScenario: 'As a SCENARIO',
+    asCharacter: 'As a CHARACTER',
+    cancel: 'CANCEL',
+    feedback_processing: 'Processing {0}...',
+    feedback_loaded: 'Loaded "{0}". Please classify it.',
+    feedback_error: 'Error: {0}',
+    feedback_success_added: 'Success! "{0}" added as a {1}.',
+    feedback_card_name_required: 'Card must have a name.',
+    feedback_invalid_json: 'Error: Invalid JSON text.',
+    feedback_fetching: 'Fetching from URL...',
+
+    // Scenario Menu
+    chooseScenario: '[ CHOOSE SCENARIO ]',
+    builtIn: 'Built-in',
+    custom: 'Custom',
+    importCreate: '[+] Import / Create...',
+    selectScenarioPrompt: 'Select a scenario to see its description.',
+    generatingWorld: 'GENERATING WORLD...',
+    continue: 'CONTINUE',
+    
+    // Character Menu
+    chooseCharacter: '[ CHOOSE CHARACTER ]',
+    forScenario: 'For Scenario',
+    selectCharacterPrompt: 'Select a character to see their details.',
+    startingStats: 'Starting Stats:',
+    startingInventory: 'Starting Inventory:',
+    startGame: 'START GAME',
+    quickstart: 'QUICKSTART',
+
+    // Scenarios
+    scenario_tutorial_name: "Tutorial",
+    scenario_tutorial_description: "A blank void. One guide. Learn the secrets of HOLE AI.",
+    scenario_modern_name: "Modern",
+    scenario_modern_description: "Year 2025. Politics in turmoil, wars erupt, hope flickers.",
+    scenario_random_name: "Random",
+    scenario_random_description: "Anywhere, anytime, anyone. Total unpredictability.",
+
+    // Characters
+    character_jax_name: "Jax 'Glitch' Riley",
+    character_jax_description: "A renegade netrunner who burned his corporate masters and now sells his skills to the highest bidder in the digital underworld. He's paranoid, exceptionally talented, and survives on a diet of stimulants and sheer nerve.",
+    character_kael_name: "Kaelen \"Kael\" Varr",
+    character_kael_description: "A disgraced xenolinguist, Kael now wanders the fringes of known space. She seeks a primordial language she believes is the universe's source code, a syntax that could rewrite reality itself. Her mind is a tapestry of forgotten dialects and dangerous cosmic truths.",
+    character_wanderer_name: "The Wanderer",
+    character_wanderer_description: "Not born, but coalesced. A consciousness from the silent void, given form in a salvaged robotic chassis. It feels a profound, almost painful, curiosity about the tangible world and the strange, fleeting creatures called 'humans'. It has no concept of morality, only data and experience.",
+
+    // Intro
+    sideWithKeeper: '[ Side with the Keeper ]',
+    sideWithSynthesizer: '[ Side with the Synthesizer ]',
+    skip: '[SKIP]',
+
+    // useGameLoop 'see' command
+    seeFace: "You look closely at {0}'s face.\n{1}", // {0} is name, {1} is description
+    seeClothing: "You examine {0}'s clothing.\n{1}",
+    seeDescription: "You observe {0}.\n{1}",
+};

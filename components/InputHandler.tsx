@@ -42,13 +42,25 @@ const ActionButton: React.FC<{onClick: () => void, disabled: boolean, children: 
     )
 }
 
+const spinnerChars = ['-', '\\', '|', '/'];
+
 export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading, suggestedActions }) => {
   const [inputValue, setInputValue] = useState('');
   const { theme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [spinnerIndex, setSpinnerIndex] = React.useState(0);
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, [isLoading]);
+  
+  React.useEffect(() => {
+    if (isLoading) {
+        const timer = setInterval(() => {
+            setSpinnerIndex((prevIndex) => (prevIndex + 1) % spinnerChars.length);
+        }, 150);
+        return () => clearInterval(timer);
+    }
   }, [isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,11 +105,11 @@ export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading
                 onChange={(e) => setInputValue(e.target.value)}
                 style={{ backgroundColor: 'transparent', color: theme.colors.text }}
                 className="flex-grow border-none focus:outline-none text-xl p-1"
-                placeholder={isLoading ? "The Gemini Master is weaving fate..." : "Enter your command..."}
+                placeholder={isLoading ? "" : "Enter your command..."}
                 disabled={isLoading}
                 autoComplete="off"
             />
-            {isLoading && <div className="animate-spin h-5 w-5 border-2 rounded-full" style={{borderColor: theme.colors.accent1, borderTopColor: 'transparent'}}></div>}
+            {isLoading && <span className="text-xl" style={{color: theme.colors.accent1}}>{spinnerChars[spinnerIndex]}</span>}
         </form>
     </div>
   );

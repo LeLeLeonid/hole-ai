@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { TextSpeed, BackgroundStyle, Difficulty } from '../types';
+import { TextSpeed, BackgroundStyle, Difficulty, Language } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SettingsMenuProps {
   onBack: () => void;
@@ -47,28 +48,33 @@ const SettingOption: React.FC<{onClick: () => void, isSelected: boolean, childre
 
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
   const { theme, setTheme, themes } = useTheme();
-  const { settings, setScale, setTextSpeed, setBackground, setDifficulty } = useSettings();
+  const { settings, setScale, setTextSpeed, setBackground, setDifficulty, setLanguage, setApiKey } = useSettings();
+  const t = useTranslation();
 
   const scaleOptions = [0.8, 1.0, 1.2, 1.5];
   const textSpeedOptions: TextSpeed[] = ['instant', 'fast', 'normal'];
-  const backgroundOptions: {value: BackgroundStyle, label: string}[] = [
-      { value: 'night-sky', label: 'Night Sky'},
-      { value: 'matrix', label: 'Matrix' },
-      { value: 'ascii', label: 'ASCII' },
-      { value: 'none', label: 'None' },
+  const backgroundOptions: {value: BackgroundStyle, key: 'bgNightSky' | 'bgMatrix' | 'bgAscii' | 'bgNone'}[] = [
+      { value: 'night-sky', key: 'bgNightSky'},
+      { value: 'matrix', key: 'bgMatrix' },
+      { value: 'ascii', key: 'bgAscii' },
+      { value: 'none', key: 'bgNone' },
   ];
   const difficultyOptions: Difficulty[] = ['EASY', 'REALISTIC', 'HARD'];
+  const languageOptions: {value: Language, label: string}[] = [
+    { value: 'en', label: 'English' },
+    { value: 'ru', label: 'Русский' },
+  ]
   
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl tracking-widest mb-8" style={{ color: theme.colors.accent1 }}>[ SETTINGS ]</h1>
+      <h1 className="text-4xl tracking-widest mb-8" style={{ color: theme.colors.accent1 }}>{t('settingsTitle')}</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8 w-full max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8 w-full max-w-7xl">
 
         {/* Theme Settings */}
         <div className="flex flex-col items-center">
-            <p className="text-2xl text-center mb-2">Theme</p>
+            <p className="text-2xl text-center mb-2">{t('theme')}</p>
             {themes.map(t => (
                 <SettingOption 
                     key={t.name}
@@ -79,24 +85,38 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
                 </SettingOption>
             ))}
         </div>
+        
+        {/* Language Settings */}
+        <div className="flex flex-col items-center">
+            <p className="text-2xl text-center mb-2">{t('language')}</p>
+            {languageOptions.map(opt => (
+                <SettingOption 
+                    key={opt.value}
+                    onClick={() => setLanguage(opt.value)}
+                    isSelected={settings.language === opt.value}
+                >
+                    {opt.label}
+                </SettingOption>
+            ))}
+        </div>
 
         {/* Background Settings */}
         <div className="flex flex-col items-center">
-            <p className="text-2xl text-center mb-2">Background</p>
+            <p className="text-2xl text-center mb-2">{t('background')}</p>
             {backgroundOptions.map(opt => (
                 <SettingOption 
                     key={opt.value}
                     onClick={() => setBackground(opt.value)}
                     isSelected={settings.background === opt.value}
                 >
-                    {opt.label}
+                    {t(opt.key)}
                 </SettingOption>
             ))}
         </div>
         
         {/* Scale Settings */}
         <div className="flex flex-col items-center">
-            <p className="text-2xl text-center mb-2">Scale</p>
+            <p className="text-2xl text-center mb-2">{t('scale')}</p>
             {scaleOptions.map(s => (
                 <SettingOption 
                     key={s}
@@ -110,34 +130,67 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
 
         {/* Text Speed Settings */}
         <div className="flex flex-col items-center">
-            <p className="text-2xl text-center mb-2">Text Speed</p>
+            <p className="text-2xl text-center mb-2">{t('textSpeed')}</p>
             {textSpeedOptions.map(speed => (
                 <SettingOption 
                     key={speed}
                     onClick={() => setTextSpeed(speed)}
                     isSelected={settings.textSpeed === speed}
                 >
-                    {speed.charAt(0).toUpperCase() + speed.slice(1)}
+                    {t(speed)}
                 </SettingOption>
             ))}
         </div>
 
         {/* Difficulty Settings */}
         <div className="flex flex-col items-center">
-            <p className="text-2xl text-center mb-2">Difficulty</p>
+            <p className="text-2xl text-center mb-2">{t('difficulty')}</p>
             {difficultyOptions.map(level => (
                 <SettingOption 
                     key={level}
                     onClick={() => setDifficulty(level)}
                     isSelected={settings.difficulty === level}
                 >
-                    {level.charAt(0).toUpperCase() + level.slice(1).toLowerCase()}
+                    {t(level.toLowerCase() as 'easy' | 'realistic' | 'hard')}
                 </SettingOption>
             ))}
         </div>
       </div>
 
-      <MenuButton onClick={onBack}>BACK</MenuButton>
+      {/* API Key Settings */}
+      <div className="w-full max-w-2xl mt-4 text-center">
+          <label htmlFor="apiKeyInput" className="text-2xl mb-2 block">{t('apiKey')}</label>
+           <div className="relative w-full">
+              <input
+                id="apiKeyInput"
+                type="password"
+                value={settings.apiKey || ''}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="w-full p-2 bg-black bg-opacity-30 border text-center"
+                style={{
+                  borderColor: theme.colors.accent1,
+                  color: theme.colors.text,
+                  paddingRight: '2.5rem' // Make space for the clear button
+                }}
+                placeholder={t('apiKeyPlaceholder')}
+              />
+              {(settings.apiKey || '') !== '' && (
+                  <button
+                      onClick={() => setApiKey(null)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-2xl"
+                      style={{ color: theme.colors.accent2, cursor: 'pointer' }}
+                      aria-label={t('clearApiKey')}
+                  >
+                      &times;
+                  </button>
+              )}
+            </div>
+      </div>
+
+
+      <div className="mt-8">
+        <MenuButton onClick={onBack}>{t('back')}</MenuButton>
+      </div>
     </div>
   );
 };

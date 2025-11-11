@@ -1,6 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import type { Item, NPC } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
+import { MAP_WIDTH, MAP_HEIGHT } from '../constants';
+
+/**
+ * Custom hook to calculate the optimal font size for ASCII art
+ * to fit perfectly within a container while maintaining aspect ratio.
+ */
+const useAsciiArtScaler = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState({ fontSize: '10px', lineHeight: '1.0' });
+
+  const calculateStyle = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+
+    if (containerWidth === 0 || containerHeight === 0) return;
+
+    // For monospace fonts, character width is roughly 0.6 of its font-size (height).
+    // We calculate the max possible font size that would fit both horizontally and vertically.
+    const maxFontSizeBasedOnWidth = (containerWidth / MAP_WIDTH) / 0.6;
+    const maxFontSizeBasedOnHeight = containerHeight / MAP_HEIGHT;
+
+    // The actual font size is the smaller of the two to ensure it never overflows.
+    const newFontSize = Math.floor(Math.min(maxFontSizeBasedOnWidth, maxFontSizeBasedOnHeight));
+    
+    // Enforce a minimum font size for readability.
+    const finalFontSize = Math.max(newFontSize, 6);
+
+    setStyle({
+        fontSize: `${finalFontSize}px`,
+        // Use a fixed line height to ensure character proportions are maintained (no stretching).
+        lineHeight: `1.0`
+    });
+  }, []);
+
+  useEffect(() => {
+    const observerTarget = containerRef.current;
+    if (!observerTarget) return;
+
+    // Calculate on mount and when the hook is re-run
+    calculateStyle();
+
+    // Use ResizeObserver to automatically recalculate when the panel size changes.
+    const resizeObserver = new ResizeObserver(calculateStyle);
+    resizeObserver.observe(observerTarget);
+
+    // Cleanup by disconnecting the observer.
+    return () => {
+      resizeObserver.unobserve(observerTarget);
+    };
+  }, [calculateStyle]);
+
+  return { containerRef, style };
+};
+
 
 // --- GameScreen (Map) Panel ---
 interface GameScreenProps {
@@ -8,20 +65,26 @@ interface GameScreenProps {
 }
 export const GameScreen: React.FC<GameScreenProps> = ({ asciiMap }) => {
   const { theme } = useTheme();
+  const { containerRef, style } = useAsciiArtScaler();
+  
   return (
     <div 
-        className="w-full h-full leading-tight overflow-hidden"
+        ref={containerRef}
+        className="w-full h-full overflow-hidden"
         style={{ 
             backgroundColor: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
         }}
     >
       <pre 
-        className="p-1 whitespace-pre"
+        className="whitespace-pre"
         style={{
             color: theme.colors.accent2,
-            fontSize: '0.85em', // Adjusted for better fit
-            lineHeight: '1.0',  // Adjusted to make map more square
-            margin: 0, // Prevent extra spacing causing scrollbars
+            fontFamily: "'VT323', monospace",
+            margin: 0,
+            ...style,
         }}
       >
         {asciiMap}
@@ -38,6 +101,7 @@ interface InventoryPanelProps {
 export const InventoryPanel: React.FC<InventoryPanelProps> = ({ inventory }) => {
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const { theme } = useTheme();
+    const t = useTranslation();
 
     return (
         <div 
@@ -45,7 +109,7 @@ export const InventoryPanel: React.FC<InventoryPanelProps> = ({ inventory }) => 
         >
             <div className="flex-grow overflow-y-auto">
                 {inventory.length === 0 ? (
-                    <p className="p-1" style={{color: theme.colors.disabledText}}>Your pockets are empty.</p>
+                    <p className="p-1" style={{color: theme.colors.disabledText}}>{t('inventoryEmpty')}</p>
                 ) : (
                     <ul className="space-y-1">
                         {inventory.map((item) => (
@@ -66,11 +130,11 @@ export const InventoryPanel: React.FC<InventoryPanelProps> = ({ inventory }) => 
                 )}
             </div>
             <div className="h-28 mt-2 pt-2" style={{borderTop: `1px solid ${theme.colors.accent1}`}}>
-                <h3 className="text-xl">Details</h3>
+                <h3 className="text-xl">{t('details')}</h3>
                 {selectedItem ? (
                     <p className="text-base whitespace-pre-wrap">{selectedItem.description}</p>
                 ) : (
-                    <p style={{color: theme.colors.disabledText}}>Select an item to view its details.</p>
+                    <p style={{color: theme.colors.disabledText}}>{t('selectItemPrompt')}</p>
                 )}
             </div>
         </div>
@@ -85,6 +149,7 @@ interface NpcPanelProps {
 export const NpcPanel: React.FC<NpcPanelProps> = ({ npcs }) => {
     const [selectedNpc, setSelectedNpc] = useState<NPC | null>(null);
     const { theme } = useTheme();
+    const t = useTranslation();
 
     return (
         <div 
@@ -92,7 +157,7 @@ export const NpcPanel: React.FC<NpcPanelProps> = ({ npcs }) => {
         >
             <div className="flex-grow overflow-y-auto">
                 {npcs.length === 0 ? (
-                    <p className="p-1" style={{color: theme.colors.disabledText}}>You haven't met anyone yet.</p>
+                    <p className="p-1" style={{color: theme.colors.disabledText}}>{t('npcsEmpty')}</p>
                 ) : (
                     <ul className="space-y-1">
                         {npcs.map((npc) => (
@@ -113,7 +178,7 @@ export const NpcPanel: React.FC<NpcPanelProps> = ({ npcs }) => {
                 )}
             </div>
             <div className="h-28 mt-2 pt-2 overflow-y-auto" style={{borderTop: `1px solid ${theme.colors.accent1}`}}>
-                <h3 className="text-xl">Details</h3>
+                <h3 className="text-xl">{t('details')}</h3>
                 {selectedNpc ? (
                     <>
                         <p className="text-base whitespace-pre-wrap">{selectedNpc.description}</p>
@@ -126,7 +191,7 @@ export const NpcPanel: React.FC<NpcPanelProps> = ({ npcs }) => {
                         )}
                     </>
                 ) : (
-                    <p style={{color: theme.colors.disabledText}}>Select a character to view details.</p>
+                    <p style={{color: theme.colors.disabledText}}>{t('selectNpcPrompt')}</p>
                 )}
             </div>
         </div>
@@ -164,14 +229,27 @@ interface PovPanelProps {
 }
 export const PovPanel: React.FC<PovPanelProps> = ({ pov }) => {
   const { theme } = useTheme();
+  const { containerRef, style } = useAsciiArtScaler();
+
   return (
     <div 
-        className="w-full h-full text-lg leading-tight overflow-auto"
+        ref={containerRef}
+        className="w-full h-full overflow-hidden"
         style={{ 
             backgroundColor: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
         }}
     >
-      <pre className="p-1 h-full whitespace-pre" style={{color: theme.colors.accent2, margin: 0}}>
+      <pre 
+        className="whitespace-pre" 
+        style={{
+            color: theme.colors.accent2, 
+            fontFamily: "'VT323', monospace",
+            margin: 0,
+            ...style
+        }}>
         {pov}
       </pre>
     </div>

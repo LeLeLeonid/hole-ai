@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import type { PanelId, PanelState } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface HeaderProps {
     characterName: string;
@@ -60,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
     panels, onPanelToggle, isLogOnlyMode, onToggleLogOnlyMode
 }) => {
     const { theme } = useTheme();
+    const t = useTranslation();
     const [showWindowsMenu, setShowWindowsMenu] = useState(false);
     const [isWindowsHovered, setIsWindowsHovered] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -75,6 +77,14 @@ export const Header: React.FC<HeaderProps> = ({
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [menuRef]);
+
+    const panelTranslations: Record<PanelId, string> = {
+      pov: t('panelPov'),
+      map: t('panelMap'),
+      inventory: t('panelInventory'),
+      stats: t('panelStats'),
+      npcs: t('panelNpcs'),
+    };
     
     return (
         <header 
@@ -90,9 +100,9 @@ export const Header: React.FC<HeaderProps> = ({
 
             <div className="flex justify-between items-center">
                 <div className="flex gap-2 items-center">
-                    <HeaderButton onClick={onMenu}>Main Menu</HeaderButton>
-                    <HeaderButton onClick={onSettings}>Settings</HeaderButton>
-                    <HeaderButton onClick={onSave}>Save Game</HeaderButton>
+                    <HeaderButton onClick={onMenu}>{t('mainMenu')}</HeaderButton>
+                    <HeaderButton onClick={onSettings}>{t('settings')}</HeaderButton>
+                    <HeaderButton onClick={onSave}>{t('saveGame')}</HeaderButton>
                     <div className="relative" ref={menuRef}>
                         <div 
                             className="flex items-center"
@@ -111,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     cursor: 'pointer',
                                 }}
                             >
-                                [ Windows
+                                [ {t('windows')}
                             </button>
                             <button
                                 onClick={() => setShowWindowsMenu(p => !p)}
@@ -129,21 +139,21 @@ export const Header: React.FC<HeaderProps> = ({
                                 className="absolute top-full left-0 p-1 min-w-[200px]" 
                                 style={{backgroundColor: theme.colors.bg, border: `1px solid ${theme.colors.accent1}`, zIndex: 9999}}
                             >
-                               <div className="px-1 opacity-75">Toggle Panels</div>
+                               <div className="px-1 opacity-75">{t('togglePanels')}</div>
                                {Object.values(panels).map((panel: PanelState) => (
                                    <DropdownMenuItem key={panel.id} onClick={() => onPanelToggle(panel.id)}>
-                                       <span className="inline-block w-4 text-center">{panel.isOpen ? '✓' : '•'}</span> {panel.title}
+                                       <span className="inline-block w-4 text-center">{panel.isOpen ? '✓' : '•'}</span> {panelTranslations[panel.id]}
                                    </DropdownMenuItem>
                                ))}
                             </div>
                         )}
                     </div>
                 </div>
-                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI v.0.4</h1>
+                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI v.0.5</h1>
             </div>
             <div className="mt-2 pt-2 flex justify-between" style={{ borderTop: `1px solid ${theme.colors.accent1}` }}>
-                <span className="whitespace-pre">{`CHARACTER: ${characterName}`}</span>
-                <span className="whitespace-pre">{`LOCATION: ${location}`}</span>
+                <span className="whitespace-pre">{`${t('character')}: ${characterName}`}</span>
+                <span className="whitespace-pre">{`${t('location')}: ${location}`}</span>
             </div>
         </header>
     );

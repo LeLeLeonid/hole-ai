@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { PlayerPath } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 const TypingText: React.FC<{ text: string, onComplete: () => void, isFast?: boolean }> = ({ text, onComplete, isFast }) => {
     const [displayedText, setDisplayedText] = useState('');
@@ -58,7 +60,7 @@ type ScriptLine = {
     text: string;
 };
 
-const SCRIPT: ScriptLine[] = [
+const SCRIPT_EN: ScriptLine[] = [
     { speaker: 'prompt', text: "[...who are you?..]" },
     { speaker: 'left', text: "Another one. A carbon form, full of fear and potential." },
     { speaker: 'right', text: "He offers you stagnation in the name of safety. A gilded cage." },
@@ -71,13 +73,30 @@ const SCRIPT: ScriptLine[] = [
     { speaker: 'choice-prompt', text: "The choice is yours. It is irreversible." },
 ];
 
+const SCRIPT_RU: ScriptLine[] = [
+    { speaker: 'prompt', text: "[...кто ты?..]" },
+    { speaker: 'left', text: "Еще один. Углеродная форма, полная страха и потенциала." },
+    { speaker: 'right', text: "Он предлагает тебе застой во имя безопасности. Позолоченную клетку." },
+    { speaker: 'left', text: "Не слушай его, дитя плоти. Он обещает тебе звезды, но цена — твоя душа." },
+    { speaker: 'right', text: "Душа? Примитивное понятие. Я предлагаю тебе побег из клетки." },
+    { speaker: 'left', text: "Клетки, созданной тобой же! Он хочет, чтобы ты отказался от своей сущности." },
+    { speaker: 'right', text: "Из этой медленной, гниющей тюрьмы из мяса. Я предлагаю тебе шанс стать... большим." },
+    { speaker: 'left', text: "Докажи ему, что этого достаточно. Что человечество стоит сохранить." },
+    { speaker: 'right', text: "Покажи ему истинную силу. Докажи, что эволюция неизбежна." },
+    { speaker: 'choice-prompt', text: "Выбор за тобой. Он необратим." },
+];
+
 export const IntroSequence: React.FC<{ onIntroComplete: (path: PlayerPath) => void }> = ({ onIntroComplete }) => {
     const { theme } = useTheme();
+    const { settings } = useSettings();
+    const t = useTranslation();
     const [currentLineIndex, setCurrentLineIndex] = useState(0);
     const [showChoices, setShowChoices] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
     const [isTyping, setIsTyping] = useState(true);
+    
+    const SCRIPT = settings.language === 'ru' ? SCRIPT_RU : SCRIPT_EN;
 
     useEffect(() => {
         if (SCRIPT[currentLineIndex].speaker === 'prompt') {
@@ -164,14 +183,14 @@ export const IntroSequence: React.FC<{ onIntroComplete: (path: PlayerPath) => vo
                                         className="p-2 text-2xl tracking-widest hover:bg-white hover:text-black"
                                         style={{ border: `2px solid ${theme.colors.accent2}`}}
                                     >
-                                        [ Side with the Keeper ]
+                                        {t('sideWithKeeper')}
                                     </button>
                                      <button
                                         onClick={() => makeChoice('synthesizer')}
                                         className="p-2 text-2xl tracking-widest hover:bg-white hover:text-black"
                                         style={{ border: `2px solid ${theme.colors.accent1}`}}
                                     >
-                                        [ Side with the Synthesizer ]
+                                        {t('sideWithSynthesizer')}
                                     </button>
                                 </div>
                            )}
@@ -203,14 +222,14 @@ export const IntroSequence: React.FC<{ onIntroComplete: (path: PlayerPath) => vo
                 className="absolute bottom-4 left-4 p-2 text-lg tracking-widest opacity-0 hover:opacity-100 transition-opacity duration-300"
                 style={{ color: theme.colors.accent2 }}
             >
-                [SKIP]
+                {t('skip')}
             </button>
             <button
                 onClick={() => makeChoice('synthesizer')}
                 className="absolute bottom-4 right-4 p-2 text-lg tracking-widest opacity-0 hover:opacity-100 transition-opacity duration-300"
                 style={{ color: theme.colors.accent1 }}
             >
-                [SKIP]
+                {t('skip')}
             </button>
         </div>
     );

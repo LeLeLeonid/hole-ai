@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CreatorToolsMenuProps {
     onManageContent: () => void;
@@ -30,14 +31,15 @@ const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disa
 
 export const CreatorToolsMenu: React.FC<CreatorToolsMenuProps> = ({ onManageContent, onBack }) => {
     const { theme } = useTheme();
+    const t = useTranslation();
 
     return (
         <div className="flex-grow flex flex-col items-center justify-center p-4">
-            <h1 className="text-4xl tracking-widest mb-10" style={{ color: theme.colors.accent1 }}>[ CREATOR TOOLS ]</h1>
+            <h1 className="text-4xl tracking-widest mb-10" style={{ color: theme.colors.accent1 }}>{t('creatorToolsTitle')}</h1>
             
             <div className="flex flex-col gap-4">
-                <MenuButton onClick={onManageContent}>MANAGE CONTENT</MenuButton>
-                <MenuButton onClick={onBack}>BACK</MenuButton>
+                <MenuButton onClick={onManageContent}>{t('manageContent')}</MenuButton>
+                <MenuButton onClick={onBack}>{t('back')}</MenuButton>
             </div>
         </div>
     );

@@ -5,39 +5,32 @@ interface SplashScreenProps {
   onFinished: () => void;
 }
 
-const messages = [
-  'Initializing Hyper-Organic Ludic Experience...',
-  'Connecting to Gemini Master...',
-  'Weaving threads of fate...',
-  'Calibrating ASCII renderers...',
-  'Done.'
-];
+const spinnerChars = ['-', '\\', '|', '/'];
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinished }) => {
   const { theme } = useTheme();
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [spinnerIndex, setSpinnerIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex(prevIndex => {
-        if (prevIndex < messages.length - 1) {
-          return prevIndex + 1;
-        }
-        clearInterval(interval);
-        setTimeout(onFinished, 500); // Wait a bit after 'Done.'
-        return prevIndex;
-      });
-    }, 1000); // Change message every second
+    const spinTimer = setInterval(() => {
+        setSpinnerIndex(prev => (prev + 1) % spinnerChars.length);
+    }, 150);
 
-    return () => clearInterval(interval);
+    const finishTimer = setTimeout(() => {
+        clearInterval(spinTimer);
+        onFinished();
+    }, 3000); // 3 seconds splash screen
+
+    return () => {
+        clearInterval(spinTimer);
+        clearTimeout(finishTimer);
+    };
   }, [onFinished]);
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-      <h1 className="text-6xl tracking-widest mb-4" style={{ color: theme.colors.accent1 }}>HOLE A!</h1>
-      <p className="text-xl" style={{ color: theme.colors.text }}>
-        {messages[messageIndex]}
-        {messageIndex < messages.length - 1 && <span className="blinking-cursor">_</span>}
+    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#000' }}>
+      <p className="text-6xl" style={{ color: theme.colors.text }}>
+        {spinnerChars[spinnerIndex]}
       </p>
     </div>
   );

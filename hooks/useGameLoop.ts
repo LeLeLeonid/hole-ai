@@ -14,6 +14,48 @@ const formatString = (str: string, ...args: string[]) => {
   });
 };
 
+/**
+ * Placeholder for the AI summarization function. In a real implementation,
+ * this would call an external API (like Gemini) to summarize the text.
+ * @param entries An array of narrative history strings to summarize.
+ * @returns A promise that resolves to a summary string.
+ */
+const getSummaryFromAI = async (entries: string[]): Promise<string> => {
+    console.log("AI Summary requested for:", entries);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(`[This is an AI-generated summary of recent events.]`);
+        }, 100);
+    });
+};
+
+/**
+ * Checks the turn count and, if it's a non-zero multiple of 10,
+ * summarizes the last 10 narrative events and stores the summary.
+ * @param gameState The current game state.
+ * @returns An updated game state with the new summary, or the original state.
+ */
+const summarizeAndStoreHistory = async (gameState: GameState): Promise<GameState> => {
+    // Trigger Condition: The function's core logic must only execute if the turn
+    // is a multiple of 10 (e.g., at turns 10, 20, 30, etc.) and is not zero.
+    if (gameState.turn > 0 && gameState.turn % 10 === 0) {
+        // Select the last 10 entries from the narrative history (gameState.log).
+        const historyToSummarize = gameState.log.slice(-10);
+
+        // Call the placeholder asynchronous function getSummaryFromAI.
+        const summary = await getSummaryFromAI(historyToSummarize);
+
+        // Take the summary string and add it to the metaDataLog array.
+        return {
+            ...gameState,
+            metaDataLog: [...(gameState.metaDataLog || []), summary],
+        };
+    }
+
+    // If the condition is not met, return the original state.
+    return gameState;
+};
+
 
 export const useGameLoop = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -32,11 +74,22 @@ export const useGameLoop = () => {
     const trimmedCommand = command.trim();
     if (!trimmedCommand) return;
 
-    // Local command handling for 'see'
+    let commandForLog = `> ${trimmedCommand}`;
+    const commandForApi = trimmedCommand;
+
+    if (trimmedCommand.toLowerCase().startsWith('say ')) {
+        const payload = trimmedCommand.substring(4).trim();
+        if (payload) { // Only log if there's something to say
+            commandForLog = `You say: "${payload}"`;
+        }
+    }
+
+    // Local command handling for 'see <target>'
     const seeCommandMatch = trimmedCommand.match(/^see (.*?)(?:'s (face|clothing))?$/i);
-    if (seeCommandMatch) {
+    if (seeCommandMatch && seeCommandMatch[1]) { // ensure there is a target
       const npcIdentifier = seeCommandMatch[1].trim().toLowerCase();
-      const detail = seeCommandMatch[2]?.trim().toLowerCase();
+      // Fix: Declare and initialize the 'detail' variable from the regex match.
+      const detail = seeCommandMatch[2]?.toLowerCase();
       
       const npc = gameState.npcs.find(n => 
         (n.isNameKnown && n.name.toLowerCase() === npcIdentifier) || 
@@ -60,7 +113,7 @@ export const useGameLoop = () => {
 
         setGameState(prev => prev ? {
           ...prev,
-          log: [...prev.log, `> ${command}`, narration].slice(-MAX_LOG_ENTRIES),
+          log: [...prev.log, `> ${trimmedCommand}`, narration].slice(-MAX_LOG_ENTRIES),
         } : null);
         return;
       }
@@ -72,16 +125,18 @@ export const useGameLoop = () => {
     // Add command to log for immediate feedback
     const currentStateForApi = {
         ...gameState,
-        log: [...gameState.log, `> ${command}`].slice(-MAX_LOG_ENTRIES)
+        log: [...gameState.log, commandForLog].slice(-MAX_LOG_ENTRIES)
     };
     setGameState(currentStateForApi);
 
     // Get update from Gemini
-    const newState = await getGameUpdate(currentStateForApi, command, settings);
+    const newStateFromAI = await getGameUpdate(currentStateForApi, commandForApi, settings);
     
-    if (newState) {
-      newState.log = newState.log.slice(-MAX_LOG_ENTRIES);
-      setGameState(newState);
+    if (newStateFromAI) {
+      newStateFromAI.log = newStateFromAI.log.slice(-MAX_LOG_ENTRIES);
+      // Summarize history if needed before setting state
+      const finalState = await summarizeAndStoreHistory(newStateFromAI);
+      setGameState(finalState);
     } else {
       // Handle API error
        const errorMsg = settings.language === 'ru'

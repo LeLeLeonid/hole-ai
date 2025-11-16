@@ -58,16 +58,14 @@ export const ru = {
     selectNpcPrompt: 'Выберите персонажа для просмотра деталей.',
 
     // Input Handler
-    inputPlaceholderLoading: '',
-    inputPlaceholder: 'Введите вашу команду...',
+    inputPlaceholderDo: 'Что вы делаете?',
+    inputPlaceholderSay: 'Что вы говорите?',
+    inputPlaceholderStory: 'Что происходит в истории?',
+    commandDo: 'Делать',
+    commandSay: 'Сказать',
+    commandStory: 'История',
+    commandSee: 'Смотреть',
 
-    // Splash Screen
-    splashMessage1: 'Инициализация Гипер-Органического Игрового Опыта...',
-    splashMessage2: 'Подключение к Gemini Master...',
-    splashMessage3: 'Плетение нитей судьбы...',
-    splashMessage4: 'Калибровка ASCII-рендереров...',
-    splashMessage5: 'Готово.',
-    
     // Load Menu
     loadGameTitle: '[ ЗАГРУЗИТЬ ИГРУ ]',
     loadGameFeedback: 'Выберите файл сохранения .json для загрузки.',

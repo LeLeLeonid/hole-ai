@@ -59,15 +59,13 @@ export const en = {
 
 
     // Input Handler
-    inputPlaceholderLoading: '',
-    inputPlaceholder: 'Enter your command...',
-
-    // Splash Screen
-    splashMessage1: 'Initializing Hyper-Organic Ludic Experience...',
-    splashMessage2: 'Connecting to Gemini Master...',
-    splashMessage3: 'Weaving threads of fate...',
-    splashMessage4: 'Calibrating ASCII renderers...',
-    splashMessage5: 'Done.',
+    inputPlaceholderDo: 'What do you do?',
+    inputPlaceholderSay: 'What do you say?',
+    inputPlaceholderStory: 'What happens in the story?',
+    commandDo: 'Do',
+    commandSay: 'Say',
+    commandStory: 'Story',
+    commandSee: 'See',
 
     // Load Menu
     loadGameTitle: '[ LOAD GAME ]',

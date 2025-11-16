@@ -74,6 +74,7 @@ export const BUILT_IN_SCENARIOS: Scenario[] = [
       suggestedActions: ["look around", "examine armchair", "see Morpheus", "ask Morpheus about the Gemini Master"],
       turn: 1,
       contextualWindows: [],
+      metaDataLog: [],
       scenario: {
         name: "Tutorial",
         description: "A blank void. One guide. Learn the secrets of HOLE AI."

@@ -69,7 +69,7 @@ const gameStateSchema = {
         },
         turn: { type: Type.INTEGER },
     },
-    // Omitting 'scenario' from required as it's for client-side tracking
+    // Omitting 'scenario' and 'metaDataLog' from required as they are client-side.
     required: ["player", "location", "npcs", "log", "suggestedActions", "turn"],
 };
 
@@ -306,6 +306,7 @@ The asciiMap and player.pov must be 60x18. The 'player.pov' must be a realistic 
                 },
                 turn: 1,
                 contextualWindows: [],
+                metaDataLog: [],
                 scenario: {
                     name: isRussian ? "Случайный сценарий" : "Random Scenario",
                     description: isRussian ? "Мир чистой непредсказуемости, сгенерированный ИИ." : "An AI-generated world of pure unpredictability."
@@ -416,6 +417,7 @@ INSTRUCTIONS:
                 suggestedActions: aiState.suggestedActions || [],
                 turn: 1,
                 contextualWindows: [],
+                metaDataLog: [],
                 scenario: {
                     name: card.data.name,
                     description: card.data.scenario || card.data.description,
@@ -530,6 +532,7 @@ INSTRUCTIONS:
                },
                turn: 1,
                contextualWindows: [],
+               metaDataLog: [],
                scenario: {
                    name: scenario.name,
                    description: scenario.description

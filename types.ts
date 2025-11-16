@@ -81,6 +81,7 @@ export interface GameState {
         name: string;
         description: string;
     }
+    metaDataLog: string[];
 }
 
 export interface Scenario {

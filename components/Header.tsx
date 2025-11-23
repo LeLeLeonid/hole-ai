@@ -84,6 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
       inventory: t('panelInventory'),
       stats: t('panelStats'),
       npcs: t('panelNpcs'),
+      log: t('panelLog'),
     };
     
     return (
@@ -149,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
                     </div>
                 </div>
-                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI v.0.5</h1>
+                <h1 style={{color: theme.colors.accent1}} className="whitespace-pre">HOLE AI v.0.6</h1>
             </div>
             <div className="mt-2 pt-2 flex justify-between" style={{ borderTop: `1px solid ${theme.colors.accent1}` }}>
                 <span className="whitespace-pre">{`${t('character')}: ${characterName}`}</span>

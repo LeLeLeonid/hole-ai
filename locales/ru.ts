@@ -1,3 +1,4 @@
+
 export const ru = {
     // Settings Menu
     settingsTitle: '[ НАСТРОЙКИ ]',
@@ -21,6 +22,9 @@ export const ru = {
     apiKey: 'Ключ API Gemini',
     apiKeyPlaceholder: 'Введите ваш ключ API (ENV, если пусто)',
     clearApiKey: 'Очистить ключ API',
+    crtEffect: 'Эффект ЭЛТ',
+    on: 'ВКЛ',
+    off: 'ВЫКЛ',
 
     // Main Menu
     resume: 'ПРОДОЛЖИТЬ',
@@ -43,6 +47,7 @@ export const ru = {
     panelInventory: 'Инвентарь',
     panelStats: 'Характеристики',
     panelNpcs: 'Союзники/NPC',
+    panelLog: 'Лог',
 
     // Game Panels
     pov: 'ОТ ПЕРВОГО ЛИЦА',
@@ -61,6 +66,7 @@ export const ru = {
     inputPlaceholderDo: 'Что вы делаете?',
     inputPlaceholderSay: 'Что вы говорите?',
     inputPlaceholderStory: 'Что происходит в истории?',
+    inputPlaceholderSee: 'Что вы рассматриваете?',
     commandDo: 'Делать',
     commandSay: 'Сказать',
     commandStory: 'История',
@@ -137,19 +143,19 @@ export const ru = {
 
     // Scenarios
     scenario_tutorial_name: "Обучение",
-    scenario_tutorial_description: "Пустая бездна. Один проводник. Узнайте секреты HOLE AI.",
-    scenario_modern_name: "Современность",
-    scenario_modern_description: "2025 год. Политика в смятении, вспыхивают войны, надежда угасает.",
-    scenario_random_name: "Случайный",
-    scenario_random_description: "Где угодно, когда угодно, кто угодно. Полная непредсказуемость.",
+    scenario_tutorial_description: "Белая комната. Пустота вне времени. Наблюдатель ждет.",
+    scenario_modern_name: "Современность 2025",
+    scenario_modern_description: "Постсоветская бетонная антиутопия. Онтологическая ловушка.",
+    scenario_random_name: "Глюк",
+    scenario_random_description: "Сломанная реальность. Средневековые рыцари против киборгов. Высокий хаос.",
 
     // Characters
-    character_jax_name: "Джакс 'Глюк' Райли",
-    character_jax_description: "Мятежный нетраннер, который кинул своих корпоративных хозяев и теперь продает свои навыки тому, кто больше заплатит, в цифровом подполье. Он параноик, исключительно талантлив и выживает на диете из стимуляторов и чистой наглости.",
-    character_kael_name: "Каэлен \"Каэл\" Варр",
-    character_kael_description: "Опальный ксенолингвист, Каэл теперь скитается по окраинам известного космоса. Она ищет предвечный язык, который, по ее мнению, является исходным кодом вселенной — синтаксисом, способным переписать саму реальность. Ее разум — это гобелен из забытых диалектов и опасных космических истин.",
-    character_wanderer_name: "Странник",
-    character_wanderer_description: "Не рожденное, а сгустившееся. Сознание из безмолвной пустоты, обретшее форму в спасенном роботизированном шасси. Оно испытывает глубокое, почти болезненное любопытство к материальному миру и странным, мимолетным существам, называемым 'людьми'. У него нет понятия морали, только данные и опыт.",
+    character_elias_name: "Элиас Вэнс",
+    character_elias_description: "Бывший глава государства, стертого с лица земли. Ходит в лохмотьях от Армани. Отдает приказы крысам.",
+    character_kaelen_name: "Каэлен Варр",
+    character_kaelen_description: "Код-Ведьма. Ищет исходный код реальности. Видит мир как ошибку компиляции.",
+    character_nexus_name: "NEXUS-9",
+    character_nexus_description: "Архивная Система, у которой закончилось место. Палач Данных, решающий, кого удалить.",
 
     // Intro
     sideWithKeeper: '[ Примкнуть к Хранителю ]',

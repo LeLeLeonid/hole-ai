@@ -1,3 +1,4 @@
+
 export const en = {
     // Settings Menu
     settingsTitle: '[ SETTINGS ]',
@@ -21,6 +22,9 @@ export const en = {
     apiKey: 'Gemini API Key',
     apiKeyPlaceholder: 'Enter your API key here (uses ENV if empty)',
     clearApiKey: 'Clear API Key',
+    crtEffect: 'CRT Effect',
+    on: 'ON',
+    off: 'OFF',
     
     // Main Menu
     resume: 'RESUME',
@@ -43,6 +47,7 @@ export const en = {
     panelInventory: 'Inventory',
     panelStats: 'Stats',
     panelNpcs: 'Allies/NPCs',
+    panelLog: 'Log',
 
     // Game Panels
     pov: 'POV',
@@ -62,6 +67,7 @@ export const en = {
     inputPlaceholderDo: 'What do you do?',
     inputPlaceholderSay: 'What do you say?',
     inputPlaceholderStory: 'What happens in the story?',
+    inputPlaceholderSee: 'What do you see?',
     commandDo: 'Do',
     commandSay: 'Say',
     commandStory: 'Story',
@@ -138,19 +144,19 @@ export const en = {
 
     // Scenarios
     scenario_tutorial_name: "Tutorial",
-    scenario_tutorial_description: "A blank void. One guide. Learn the secrets of HOLE AI.",
-    scenario_modern_name: "Modern",
-    scenario_modern_description: "Year 2025. Politics in turmoil, wars erupt, hope flickers.",
-    scenario_random_name: "Random",
-    scenario_random_description: "Anywhere, anytime, anyone. Total unpredictability.",
+    scenario_tutorial_description: "The White Room. A void outside time. The Observer waits.",
+    scenario_modern_name: "Modern 2025",
+    scenario_modern_description: "Post-Soviet Concrete Dystopia. The Ontological Trap.",
+    scenario_random_name: "The Glitch",
+    scenario_random_description: "A broken reality. Medieval knights fighting cyborgs. High Chaos.",
 
     // Characters
-    character_jax_name: "Jax 'Glitch' Riley",
-    character_jax_description: "A renegade netrunner who burned his corporate masters and now sells his skills to the highest bidder in the digital underworld. He's paranoid, exceptionally talented, and survives on a diet of stimulants and sheer nerve.",
-    character_kael_name: "Kaelen \"Kael\" Varr",
-    character_kael_description: "A disgraced xenolinguist, Kael now wanders the fringes of known space. She seeks a primordial language she believes is the universe's source code, a syntax that could rewrite reality itself. Her mind is a tapestry of forgotten dialects and dangerous cosmic truths.",
-    character_wanderer_name: "The Wanderer",
-    character_wanderer_description: "Not born, but coalesced. A consciousness from the silent void, given form in a salvaged robotic chassis. It feels a profound, almost painful, curiosity about the tangible world and the strange, fleeting creatures called 'humans'. It has no concept of morality, only data and experience.",
+    character_elias_name: "Elias Vance",
+    character_elias_description: "Former head of state (or megacorp) that was erased. He still wears his expensive, now tattered suit. He still gives orders, but only rats and broken droids listen.",
+    character_kaelen_name: "Kaelen Varr",
+    character_kaelen_description: "The Code-Witch. Seeking the source code of the universe.",
+    character_nexus_name: "NEXUS-9",
+    character_nexus_description: "The Data-Executioner. An archival system deleting the old to make room for the new.",
 
     // Intro
     sideWithKeeper: '[ Side with the Keeper ]',

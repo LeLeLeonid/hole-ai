@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import type { GameState, Settings } from '../types';
 import { getGameUpdate } from '../services/geminiService';
@@ -15,44 +16,25 @@ const formatString = (str: string, ...args: string[]) => {
 };
 
 /**
- * Placeholder for the AI summarization function. In a real implementation,
- * this would call an external API (like Gemini) to summarize the text.
- * @param entries An array of narrative history strings to summarize.
- * @returns A promise that resolves to a summary string.
+ * Placeholder for the AI summarization function.
  */
 const getSummaryFromAI = async (entries: string[]): Promise<string> => {
-    console.log("AI Summary requested for:", entries);
     return new Promise(resolve => {
         setTimeout(() => {
-            resolve(`[This is an AI-generated summary of recent events.]`);
+            resolve(`[Summary of recent events]`);
         }, 100);
     });
 };
 
-/**
- * Checks the turn count and, if it's a non-zero multiple of 10,
- * summarizes the last 10 narrative events and stores the summary.
- * @param gameState The current game state.
- * @returns An updated game state with the new summary, or the original state.
- */
 const summarizeAndStoreHistory = async (gameState: GameState): Promise<GameState> => {
-    // Trigger Condition: The function's core logic must only execute if the turn
-    // is a multiple of 10 (e.g., at turns 10, 20, 30, etc.) and is not zero.
     if (gameState.turn > 0 && gameState.turn % 10 === 0) {
-        // Select the last 10 entries from the narrative history (gameState.log).
         const historyToSummarize = gameState.log.slice(-10);
-
-        // Call the placeholder asynchronous function getSummaryFromAI.
         const summary = await getSummaryFromAI(historyToSummarize);
-
-        // Take the summary string and add it to the metaDataLog array.
         return {
             ...gameState,
             metaDataLog: [...(gameState.metaDataLog || []), summary],
         };
     }
-
-    // If the condition is not met, return the original state.
     return gameState;
 };
 
@@ -76,19 +58,25 @@ export const useGameLoop = () => {
 
     let commandForLog = `> ${trimmedCommand}`;
     const commandForApi = trimmedCommand;
-
-    if (trimmedCommand.toLowerCase().startsWith('say ')) {
+    
+    // Check for standard prefixes to format log nicer
+    const lowerCmd = trimmedCommand.toLowerCase();
+    
+    if (lowerCmd.startsWith('say ')) {
         const payload = trimmedCommand.substring(4).trim();
-        if (payload) { // Only log if there's something to say
-            commandForLog = `You say: "${payload}"`;
-        }
+        if (payload) commandForLog = `You say: "${payload}"`;
+    } else if (lowerCmd.startsWith('see ')) {
+        const payload = trimmedCommand.substring(4).trim();
+        if (payload) commandForLog = `You see ${payload}`;
+    } else if (lowerCmd.startsWith('do ')) {
+        const payload = trimmedCommand.substring(3).trim();
+        if (payload) commandForLog = `You ${payload}`;
     }
 
     // Local command handling for 'see <target>'
     const seeCommandMatch = trimmedCommand.match(/^see (.*?)(?:'s (face|clothing))?$/i);
-    if (seeCommandMatch && seeCommandMatch[1]) { // ensure there is a target
+    if (seeCommandMatch && seeCommandMatch[1]) { 
       const npcIdentifier = seeCommandMatch[1].trim().toLowerCase();
-      // Fix: Declare and initialize the 'detail' variable from the regex match.
       const detail = seeCommandMatch[2]?.toLowerCase();
       
       const npc = gameState.npcs.find(n => 
@@ -113,7 +101,7 @@ export const useGameLoop = () => {
 
         setGameState(prev => prev ? {
           ...prev,
-          log: [...prev.log, `> ${trimmedCommand}`, narration].slice(-MAX_LOG_ENTRIES),
+          log: [...prev.log, commandForLog, narration].slice(-MAX_LOG_ENTRIES),
         } : null);
         return;
       }

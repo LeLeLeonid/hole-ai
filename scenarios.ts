@@ -1,55 +1,30 @@
+
 import { Scenario } from './types';
 
 export const BUILT_IN_SCENARIOS: Scenario[] = [
   {
     name: "Tutorial",
-    description: "A blank void. One guide. Learn the secrets of HOLE AI.",
+    description: "The White Room. A void outside time. The Observer waits to calibrate your S.O.U.L.",
     initialState: {
-      player: { // This is a template, the chosen character's data will be merged in.
+      player: { 
         name: "Neophyte",
-        description: "Someone new to this reality.",
+        description: "New arrival.",
         inventory: [],
-        stats: { "Clarity": 10 },
-        pov: `
-............................................................
-............................................................
-..........Morpheus, in reflective glasses, stands...........
-...............before a black leather armchair...............
-................in an endless white expanse.................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-............................................................
-`
+        stats: {},
+        pov: ""
       },
       location: {
         name: "The Construct",
-        description: "You are in a vast, empty white space. The floor is a grid of faint, glowing lines extending to an infinite horizon. A single black leather armchair stands in the center. The man who calls himself Morpheus is waiting for you.",
+        description: "A sterile, infinite white expanse. A single entity, 'The Observer', sits in a leather armchair. This is the calibration zone.",
         asciiMap: `
 +----------------------------------------------------------+
-|                                                          |
-|                                                          |
-|                                                          |
 |                                                          |
 |                                                          |
 |                                                          |
 |                      @                                   |
 |                                                          |
-|                                                          |
 |                       (Armchair)                         |
-|                           M                              |
-|                                                          |
-|                                                          |
-|                                                          |
+|                          O                               |
 |                                                          |
 |                                                          |
 |                                                          |
@@ -57,88 +32,120 @@ export const BUILT_IN_SCENARIOS: Scenario[] = [
 `,
       },
       npcs: [{
-        name: "Morpheus",
-        knownAs: "Morpheus",
+        name: "The Observer",
+        knownAs: "The Observer",
         isNameKnown: true,
-        description: "A wise and enigmatic man, dressed in a long black coat. He carries an aura of quiet authority and deep knowledge.",
-        faceDescription: "He has a calm, knowing expression, with reflective pince-nez glasses perched on his nose.",
-        clothingDescription: "A tailored, floor-length black coat made of a material that seems to absorb light.",
-        notes: ["He is here to teach you the basics of this reality."],
+        description: "A meta-physical entity resembling a man in a black coat. He seems aware he is in a simulation.",
+        faceDescription: "Reflective glasses mirroring the void.",
+        clothingDescription: "A textureless black suit.",
+        notes: ["He is the guide to the HOLE."],
       }],
       log: [
-        "Morpheus looks at you. 'Welcome to the Construct. This is a training program.'",
-        "'The text feed you are reading is the LOG. The image above is your Point of View, or POV.'",
-        "'This is your first lesson. Use the suggested actions below to interact with the world.'",
-        "To begin, click or type 'look around'."
+        "The Observer nods. 'Welcome to the Construct. We need to calibrate your perception.'",
+        "'Look above. That is your POV. No text allowed there, only pure vision.'",
+        "'Type a command or use the buttons below.'"
       ],
-      suggestedActions: ["look around", "examine armchair", "see Morpheus", "ask Morpheus about the Gemini Master"],
+      suggestedActions: ["look around", "talk to Observer", "check stats"],
       turn: 1,
+      factionBalance: 0,
+      chaosLevel: 0,
       contextualWindows: [],
       metaDataLog: [],
       scenario: {
         name: "Tutorial",
-        description: "A blank void. One guide. Learn the secrets of HOLE AI."
+        description: "The White Room. Calibration."
       }
     }
   },
   {
-    name: "Modern",
-    description: "Year 2025. Politics in turmoil, wars erupt, hope flickers.",
+    name: "Modern 2025",
+    description: "Post-Soviet Concrete Dystopia. The Ontological Trap. Find a way to 'Ascend' or 'Rebel'.",
     initialState: {
-      player: {} as any, // Player will be chosen by the user
+      player: {} as any,
       location: {
-        name: "A Disputed Border Crossing",
-        description: "You stand before a makeshift checkpoint. The air is tense. A mix of aid workers, displaced families, and nervous-looking guards populate the area. The world beyond this gate is uncertain, but it's the only way forward.",
+        name: "Sector 4 Checkpoint",
+        description: "Grey sky. Rain. Neon signs reflecting in dirty puddles. The bureaucracy is suffocating.",
         asciiMap: `
 +----------------------------------------------------------+
-|~~~~~~~~~~~~~ FENCE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-|......                                                    |
-|......          | |                                       |
-|......          | | GATE                                  |
-|......         G| |G                                      |
-|......          | |                                       |
-|......                                              TENT  |
-|..@...                                             /....\\ |
-|......                                            /______\\|
-|......                                                    |
-|......                                                    |
-|......      JEEP                                          |
-|......    /--O--\\                                         |
-|......                                                    |
-|                                                           |
-|                                                           |
-| ROAD ................................................... |
+|  [BLOCK 1]       [BLOCK 2]                               |
+|   |||||           |||||                                  |
+|                                         (NEON SIGN)      |
+|                                            "HOPE"        |
+|      @                                                   |
+|                                                          |
+|   [Checkpoint]------[Gate]--------------------           |
+|      (G)uard                                             |
+|                                                          |
+|                                                          |
 +----------------------------------------------------------+
 `,
       },
       npcs: [{
         name: "Guard",
-        knownAs: "A Border Guard",
+        knownAs: "Checkpoint Guard",
         isNameKnown: false,
-        description: "A soldier in worn fatigues, their face a mask of weary professionalism. They watch everyone who approaches the gate with a hawk's intensity.",
-        faceDescription: "Sun-weathered skin, sharp eyes that miss nothing, and a grim set to their jaw.",
-        clothingDescription: "Standard issue fatigues, dusty and faded. A heavy-looking rifle is slung over their shoulder.",
-        notes: ["Appears to be in charge of the checkpoint."],
+        description: "Apathy in uniform. He just wants his shift to end.",
+        faceDescription: "Tired eyes, stubble.",
+        clothingDescription: "Worn tactical gear, damp from rain.",
+        notes: [],
       }],
       log: [
-        "The year is 2025. The world is a tapestry of conflict and connection, woven by threads of political strife and digital innovation.",
-        "You've arrived at a border, a flashpoint of tension and a beacon for those seeking new beginnings.",
-        "Your choices here may ripple across this fragile world.",
-        "What do you do?"
+        "The year is 2025. The air tastes like copper and lost data.",
+        "You are stuck at the Sector 4 Checkpoint. You need to Ascend or Rebel.",
       ],
-      suggestedActions: ["approach the guards", "talk to an aid worker", "check your documents", "observe the families"],
+      suggestedActions: ["show ID", "bribe guard", "look at neon sign"],
       turn: 1,
+      factionBalance: 0,
+      chaosLevel: 2,
       contextualWindows: [],
       scenario: {
-        name: "Modern World",
-        description: "Year 2025. Politics in turmoil, wars erupt, hope flickers."
+        name: "Modern 2025",
+        description: "The Trap of Reality."
       }
     }
   },
+  {
+    name: "Learning Hub",
+    description: "The Archive. An infinite library in a black hole. Consuming items grants permanent stat buffs.",
+    initialState: {
+        player: {} as any,
+        location: {
+            name: "The Event Horizon Library",
+            description: "Shelves spiraling into infinity. Gravity is heavy here. Knowledge is physical.",
+            asciiMap: `
++----------------------------------------------------------+
+|   | | | | | |  BOOKS  | | | | | |                        |
+|   | | | | | |         | | | | | |                        |
+|                                                          |
+|        @                                                 |
+|                                                          |
+|      [Pedestal]                                          |
+|         (B)ook                                           |
+|                                                          |
+|    ~ ~ ~ ~ SINGULARITY ~ ~ ~ ~                           |
++----------------------------------------------------------+
+            `
+        },
+        npcs: [],
+        log: [
+            "You stand in the Archive. Here, concepts are items.",
+            "Consuming knowledge alters your S.O.U.L.",
+        ],
+        suggestedActions: ["read book", "approach singularity"],
+        turn: 1,
+        factionBalance: 0,
+        chaosLevel: 0,
+        contextualWindows: [],
+        scenario: {
+            name: "Learning Hub",
+            description: "The Archive."
+        }
+    }
+  }
 ];
 
 export const RANDOM_SCENARIO_TEMPLATE: Scenario = {
-  name: "Random",
-  description: "Anywhere, anytime, anyone. Total unpredictability.",
-  initialState: {} as any, // Will be filled by AI
+  name: "The Glitch",
+  description: "A broken reality where genres mix. Medieval knights fighting cyborgs. High Randomness.",
+  initialState: {} as any, 
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import type { Item, NPC } from '../types';
@@ -193,30 +194,6 @@ export const NpcPanel: React.FC<NpcPanelProps> = ({ npcs }) => {
                 ) : (
                     <p style={{color: theme.colors.disabledText}}>{t('selectNpcPrompt')}</p>
                 )}
-            </div>
-        </div>
-    );
-};
-
-
-// --- Player Stats Panel ---
-interface PlayerStatsPanelProps {
-    stats: Record<string, string | number>;
-}
-export const PlayerStatsPanel: React.FC<PlayerStatsPanelProps> = ({ stats }) => {
-    const { theme } = useTheme();
-
-    return (
-        <div className="h-full flex flex-col">
-            <div className="flex-grow overflow-y-auto">
-                <ul className="space-y-2 p-1">
-                    {Object.entries(stats).map(([key, value]) => (
-                        <li key={key} className="flex justify-between">
-                            <span style={{color: theme.colors.text}}>{key}:</span>
-                            <span style={{color: theme.colors.accent2}}>{value}</span>
-                        </li>
-                    ))}
-                </ul>
             </div>
         </div>
     );

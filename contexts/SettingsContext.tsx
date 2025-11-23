@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Settings, TextSpeed, BackgroundStyle, Difficulty, PlayerPath, Language } from '../types';
 
@@ -12,6 +13,7 @@ interface SettingsContextType {
   setSettings: (settings: Settings) => void;
   setLanguage: (language: Language) => void;
   setApiKey: (key: string | null) => void;
+  setCrtEnabled: (enabled: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ const defaultSettings: Settings = {
   introCompleted: false,
   language: 'en',
   apiKey: null,
+  crtEnabled: true,
 };
 
 const getInitialSettings = (): Settings => {
@@ -88,8 +91,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setSettingsState(s => ({ ...s, apiKey: key }));
   };
 
+  const setCrtEnabled = (enabled: boolean) => {
+    setSettingsState(s => ({ ...s, crtEnabled: enabled }));
+  };
+
   return (
-    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setDifficulty, setPath, setIntroCompleted, setSettings, setLanguage, setApiKey }}>
+    <SettingsContext.Provider value={{ settings, setScale, setTextSpeed, setBackground, setDifficulty, setPath, setIntroCompleted, setSettings, setLanguage, setApiKey, setCrtEnabled }}>
       {children}
     </SettingsContext.Provider>
   );

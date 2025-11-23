@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -48,7 +49,7 @@ const SettingOption: React.FC<{onClick: () => void, isSelected: boolean, childre
 
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
   const { theme, setTheme, themes } = useTheme();
-  const { settings, setScale, setTextSpeed, setBackground, setDifficulty, setLanguage, setApiKey } = useSettings();
+  const { settings, setScale, setTextSpeed, setBackground, setDifficulty, setLanguage, setApiKey, setCrtEnabled } = useSettings();
   const t = useTranslation();
 
   const scaleOptions = [0.8, 1.0, 1.2, 1.5];
@@ -155,6 +156,15 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
                 </SettingOption>
             ))}
         </div>
+      </div>
+
+      {/* CRT Effect Toggle */}
+      <div className="flex flex-col items-center mb-8">
+          <p className="text-2xl text-center mb-2">{t('crtEffect')}</p>
+          <div className="flex gap-4">
+              <SettingOption onClick={() => setCrtEnabled(true)} isSelected={settings.crtEnabled === true}>{t('on')}</SettingOption>
+              <SettingOption onClick={() => setCrtEnabled(false)} isSelected={settings.crtEnabled === false}>{t('off')}</SettingOption>
+          </div>
       </div>
 
       {/* API Key Settings */}

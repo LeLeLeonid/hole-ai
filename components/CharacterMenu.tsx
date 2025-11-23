@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { PREDEFINED_CHARACTERS } from '../characters';
@@ -11,6 +12,7 @@ interface CharacterMenuProps {
   onBack: () => void;
   isGenerating: boolean;
   onQuickstart: () => void;
+  onAddCharacter: () => void;
 }
 
 const MenuButton: React.FC<{onClick: () => void, children: React.ReactNode, disabled?: boolean}> = ({ onClick, children, disabled }) => {
@@ -46,14 +48,14 @@ const mapCardToCharacter = (card: CharaCardV3): Character => ({
 
 // Helper function outside the component for robustness
 const getCharacterKey = (name: string): string | null => {
-    if (name.includes('Jax')) return 'jax';
-    if (name.includes('Kaelen')) return 'kael';
-    if (name.includes('Wanderer')) return 'wanderer';
+    if (name.includes('Elias') || name.includes('Jax')) return 'elias';
+    if (name.includes('Kaelen')) return 'kaelen';
+    if (name.includes('NEXUS') || name.includes('The Preserved')) return 'nexus';
     return null;
 };
 
 
-export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect, onBack, isGenerating, onQuickstart }) => {
+export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect, onBack, isGenerating, onQuickstart, onAddCharacter }) => {
   const { theme } = useTheme();
   const { customContent } = useCustomContent();
   const t = useTranslation();
@@ -89,7 +91,7 @@ export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl tracking-widest mb-2" style={{ color: theme.colors.accent1 }}>{t('chooseCharacter')}</h1>
-      <p className="text-xl mb-6" style={{ color: theme.colors.accent2 }}>{t('forScenario')}: {t(scenarioNameKey)}</p>
+      <p className="text-xl mb-6" style={{ color: theme.colors.accent2 }}>{t('forScenario')}: {t(scenarioNameKey) || scenario.name}</p>
       
       <div className="w-full max-w-4xl h-80 flex gap-4 mb-8">
         {/* Character List */}
@@ -108,6 +110,16 @@ export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect
                     <h3 className="text-xl">{getTranslatedCharacter(char).name}</h3>
                 </div>
             ))}
+
+            <div
+                onClick={onAddCharacter}
+                className="p-2 cursor-pointer mt-2 border-t border-gray-800 hover:bg-gray-900"
+                style={{
+                    color: theme.colors.accent2,
+                }}
+            >
+                <h3 className="text-xl">[+] {t('importCreate')}</h3>
+            </div>
         </div>
         {/* Character Details */}
         <div className="flex-[2] p-2 overflow-y-auto" style={{ border: `1px solid ${theme.colors.accent1}` }}>
@@ -115,10 +127,17 @@ export const CharacterMenu: React.FC<CharacterMenuProps> = ({ scenario, onSelect
                 <div>
                     <h2 className="text-2xl" style={{color: theme.colors.accent2}}>{selectedTranslatedChar.name}</h2>
                     <p className="my-2 whitespace-pre-wrap">{selectedTranslatedChar.description}</p>
-                    <h4 className="mt-4">{t('startingStats')}</h4>
-                    <ul className="list-disc list-inside">
-                        {Object.entries(selectedTranslatedChar.stats).map(([key, value]) => <li key={key}>{key}: {value}</li>)}
-                    </ul>
+                    <h4 className="mt-4 text-lg" style={{color: theme.colors.accent1}}>S.O.U.L. Stats</h4>
+                    {selectedTranslatedChar.soulStats ? (
+                         <div className="grid grid-cols-2 gap-2 mt-2">
+                             <div>S (Synapses): {selectedTranslatedChar.soulStats.S}</div>
+                             <div>O (Organics): {selectedTranslatedChar.soulStats.O}</div>
+                             <div>U (Uncertainty): {selectedTranslatedChar.soulStats.U}</div>
+                             <div>L (Lore): {selectedTranslatedChar.soulStats.L}</div>
+                         </div>
+                    ) : (
+                        <p className="italic">Stats will be generated.</p>
+                    )}
                      <h4 className="mt-4">{t('startingInventory')}</h4>
                     <ul className="list-disc list-inside">
                         {selectedTranslatedChar.inventory.map(item => <li key={item.name}>{item.name}</li>)}

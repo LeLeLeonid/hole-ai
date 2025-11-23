@@ -1,49 +1,16 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { Difficulty } from '../types';
 
 interface InputHandlerProps {
   onCommand: (command: string) => void;
   isLoading: boolean;
-  suggestedActions: string[];
+  difficulty: Difficulty;
 }
 
-type CommandMode = 'do' | 'say' | 'story';
-
-const ActionButton: React.FC<{onClick: () => void, disabled: boolean, children: React.ReactNode}> = ({ onClick, disabled, children }) => {
-    const { theme } = useTheme();
-    const [isHovered, setIsHovered] = React.useState(false);
-
-    const getBackgroundColor = () => {
-        if (disabled) return theme.colors.disabledBg;
-        if (isHovered) return theme.colors.highlightBg;
-        return 'transparent';
-    }
-
-    const getTextColor = () => {
-        if (disabled) return theme.colors.disabledText;
-        if (isHovered) return theme.colors.highlightText;
-        return theme.colors.text;
-    }
-
-    return (
-        <button 
-            onClick={!disabled ? onClick : undefined}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            disabled={disabled}
-            style={{
-                backgroundColor: getBackgroundColor(),
-                color: getTextColor(),
-                border: `1px solid ${disabled ? theme.colors.disabledText : theme.colors.accent1}`,
-                cursor: disabled ? 'default' : 'pointer',
-            }}
-            className="px-2 py-1"
-        >
-            {children}
-        </button>
-    )
-}
+type CommandMode = 'do' | 'say' | 'story' | 'see';
 
 const CommandBarButton: React.FC<{
   onClick: () => void;
@@ -90,7 +57,7 @@ const CommandBarButton: React.FC<{
 
 const spinnerChars = ['-', '\\', '|', '/'];
 
-export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading, suggestedActions }) => {
+export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading, difficulty }) => {
   const [inputValue, setInputValue] = useState('');
   const { theme } = useTheme();
   const t = useTranslation();
@@ -120,9 +87,12 @@ export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading
     const firstWord = trimmedInput.split(' ')[0].toLowerCase();
     
     let commandToSend: string;
+    
+    // If the user manually typed "see something" while in "do" mode, respect it.
     if (commandWords.includes(firstWord)) {
         commandToSend = trimmedInput;
     } else {
+        // Otherwise prefix with the selected mode
         commandToSend = `${commandMode} ${trimmedInput}`;
     }
     
@@ -130,22 +100,14 @@ export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading
     setInputValue('');
   };
 
-  const handleSuggestionClick = (action: string) => {
-    if (isLoading) return;
-    onCommand(action);
-    setInputValue('');
-  };
-
-  const handleSeeClick = () => {
-    if (isLoading) return;
-    onCommand('see');
-  };
-
   const placeholderText = {
     do: t('inputPlaceholderDo'),
     say: t('inputPlaceholderSay'),
     story: t('inputPlaceholderStory'),
+    see: t('inputPlaceholderSee'),
   }
+  
+  const isStoryEnabled = difficulty === 'EASY';
 
   return (
     <div className="relative p-2" style={{ 
@@ -158,35 +120,21 @@ export const InputHandler: React.FC<InputHandlerProps> = ({ onCommand, isLoading
         
         <div className="mb-2" style={{backgroundColor: `rgba(${parseInt(theme.colors.bg.slice(1,3),16)}, ${parseInt(theme.colors.bg.slice(3,5),16)}, ${parseInt(theme.colors.bg.slice(5,7),16)}, 0.5)`}}>
             <div className="flex items-center" style={{ border: `1px solid ${theme.colors.accent1}` }}>
-                <CommandBarButton onClick={() => {}} disabled={isLoading} >
-                    {'←'}
-                </CommandBarButton>
                 <CommandBarButton onClick={() => setCommandMode('do')} isActive={commandMode === 'do'} disabled={isLoading}>
-                    <span role="img" aria-label="action">🏃</span> {t('commandDo')}
+                    [ ! ] {t('commandDo')}
                 </CommandBarButton>
                 <CommandBarButton onClick={() => setCommandMode('say')} isActive={commandMode === 'say'} disabled={isLoading}>
-                    <span role="img" aria-label="dialogue">💬</span> {t('commandSay')}
+                    [ " ] {t('commandSay')}
                 </CommandBarButton>
-                <CommandBarButton onClick={() => setCommandMode('story')} isActive={commandMode === 'story'} disabled={isLoading}>
-                    <span role="img" aria-label="narration">🔊</span> {t('commandStory')}
+                <CommandBarButton onClick={() => setCommandMode('story')} isActive={commandMode === 'story'} disabled={isLoading || !isStoryEnabled}>
+                    [ ~ ] {t('commandStory')}
                 </CommandBarButton>
-                <CommandBarButton onClick={handleSeeClick} disabled={isLoading}>
-                     <span role="img" aria-label="perception">🖼️</span> {t('commandSee')}
+                <CommandBarButton onClick={() => setCommandMode('see')} isActive={commandMode === 'see'} disabled={isLoading}>
+                     [ O ] {t('commandSee')}
                 </CommandBarButton>
             </div>
         </div>
         
-        <div className="flex flex-wrap gap-2 mb-2">
-            {suggestedActions.map((action, index) => (
-                 <ActionButton 
-                    key={index} 
-                    onClick={() => handleSuggestionClick(action)}
-                    disabled={isLoading}
-                >
-                    {action}
-                </ActionButton>
-            ))}
-        </div>
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <span style={{ color: theme.colors.text }} className="text-2xl">{'>'}</span>
             <input

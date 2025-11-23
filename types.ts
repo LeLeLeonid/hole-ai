@@ -1,3 +1,4 @@
+
 export type TextSpeed = 'instant' | 'fast' | 'normal';
 export type BackgroundStyle = 'night-sky' | 'matrix' | 'ascii' | 'none';
 export type Difficulty = 'EASY' | 'REALISTIC' | 'HARD';
@@ -13,6 +14,7 @@ export interface Settings {
     introCompleted: boolean;
     language: Language;
     apiKey: string | null;
+    crtEnabled: boolean;
 }
 
 export interface Theme {
@@ -45,11 +47,21 @@ export interface NPC {
     notes: string[];
 }
 
+export interface SoulStats {
+    S: number; // Synapses: Logic, coding, perception of tech
+    O: number; // Organics: Strength, health, empathy, connection to nature
+    U: number; // Uncertainty: Luck, chaos manipulation, critical hits
+    L: number; // Lore: Knowledge of the old world and history
+}
+
 export interface Character {
     name:string;
     description: string;
     inventory: Item[];
-    stats: Record<string, string | number>;
+    stats: Record<string, string | number>; // Keeping for backward compatibility / extra flavor
+    soulStats?: SoulStats;
+    archetype?: string;
+    hiddenTrait?: string;
     pov: string;
 }
 
@@ -59,7 +71,7 @@ export interface Location {
     asciiMap: string;
 }
 
-export type PanelId = 'pov' | 'stats' | 'inventory' | 'npcs' | 'map';
+export type PanelId = 'pov' | 'stats' | 'inventory' | 'npcs' | 'map' | 'log';
 
 export interface PanelState {
     id: PanelId;
@@ -76,7 +88,9 @@ export interface GameState {
     log: string[];
     suggestedActions: string[];
     turn: number;
-    contextualWindows: any[]; // Or define a more specific type
+    factionBalance: number; // -10 (Pure Keeper) to +10 (Pure Synthesizer)
+    chaosLevel: number; // 0 to 10, How unstable the reality is
+    contextualWindows: any[]; 
     scenario: {
         name: string;
         description: string;

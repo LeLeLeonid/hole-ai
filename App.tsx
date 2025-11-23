@@ -1,17 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTheme } from './contexts/ThemeContext';
 import { useSettings } from './contexts/SettingsContext';
 import { useGameLoop } from './hooks/useGameLoop';
-import type { GameState, Character, Scenario, PanelId, PanelState, SaveSlot, PlayerPath, CharaCardV3 } from './types';
+import type { GameState, Character, Scenario, SaveSlot, PlayerPath, CharaCardV3 } from './types';
 import { MainMenu } from './components/MainMenu';
 import { SettingsMenu } from './components/SettingsMenu';
-import { Header } from './components/Header';
-import { GameLog } from './components/GameLog';
-import { InputHandler } from './components/InputHandler';
 import { AnimatedBackground } from './components/AnimatedBackground';
-import { Panel } from './components/Panel';
-import { PovPanel, PlayerStatsPanel, InventoryPanel, NpcPanel, GameScreen } from './components/GamePanels';
-import { generateRandomScenario, generateScenarioFromCard, generateScenarioFromBuiltIn } from './services/geminiService';
+import { generateRandomScenario, generateScenarioFromCard, generateScenarioFromBuiltIn, analyzeCharacterForStats } from './services/geminiService';
 import { SplashScreen } from './components/SplashScreen';
 import { IntroSequence } from './components/IntroSequence';
 import { LoadMenu } from './components/LoadMenu';
@@ -19,38 +15,20 @@ import { CreatorToolsMenu } from './components/CreatorToolsMenu';
 import { ScenarioMenu } from './components/ScenarioMenu';
 import { CharacterMenu } from './components/CharacterMenu';
 import { ContentEditor } from './components/ContentEditor';
-import { useTranslation } from './hooks/useTranslation';
+import { GameLayout } from './components/GameLayout';
+import { CrtOverlay } from './components/CrtOverlay';
 
-type AppScreen = 'loading' | 'intro' | 'splash' | 'main-menu' | 'settings' | 'load-game' | 'game' | 'new-game-scenario' | 'new-game-character' | 'creator-tools' | 'content-editor';
+type AppScreen = 'loading' | 'intro' | 'splash' | 'main-menu' | 'settings' | 'load-game' | 'game' | 'new-game-scenario' | 'new-game-character' | 'creator-tools' | 'content-editor' | 'analyzing';
 
 const App: React.FC = () => {
     const { theme, setTheme } = useTheme();
     const { settings, setSettings, setPath, setIntroCompleted } = useSettings();
-    const t = useTranslation();
     const [screen, setScreen] = useState<AppScreen>('loading');
     const [settingsReturnScreen, setSettingsReturnScreen] = useState<AppScreen>('main-menu');
     const { gameState, setGameState, processPlayerCommand, isLoading, startGame } = useGameLoop();
     const [isGeneratingScenario, setIsGeneratingScenario] = useState(false);
     const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
     const [selectedCard, setSelectedCard] = useState<CharaCardV3 | null>(null);
-    const [panels, setPanels] = useState<Record<PanelId, PanelState>>({
-        pov: { id: 'pov', title: t('pov'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        map: { id: 'map', title: t('map'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        inventory: { id: 'inventory', title: t('inventory'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        stats: { id: 'stats', title: t('stats'), isOpen: false, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-        npcs: { id: 'npcs', title: t('npcs'), isOpen: true, position: { x: 0, y: 0 }, size: { width: 0, height: 0 } },
-    });
-
-    useEffect(() => {
-        setPanels({
-            pov: { ...panels.pov, title: t('pov') },
-            map: { ...panels.map, title: t('map') },
-            inventory: { ...panels.inventory, title: t('inventory') },
-            stats: { ...panels.stats, title: t('stats') },
-            npcs: { ...panels.npcs, title: t('npcs') },
-        });
-    }, [t]);
-
 
     useEffect(() => {
         if (screen === 'loading') {
@@ -61,10 +39,6 @@ const App: React.FC = () => {
             }
         }
     }, [settings, screen]);
-
-
-    
-    const [isLogOnlyMode, setIsLogOnlyMode] = useState(false);
 
     useEffect(() => {
         document.body.style.backgroundColor = theme.colors.bg;
@@ -100,32 +74,42 @@ const App: React.FC = () => {
     };
 
     const handleCharacterSelect = async (character: Character) => {
+        setIsGeneratingScenario(true);
+        let playerWithStats = { ...character };
+
+        // --- S.O.U.L. CHECK ---
+        if (!playerWithStats.soulStats) {
+            setScreen('analyzing');
+            // If stats are missing, ask Gemini to generate them
+            const analysis = await analyzeCharacterForStats(character, settings);
+            if (analysis) {
+                playerWithStats = {
+                    ...playerWithStats,
+                    soulStats: { S: analysis.S, O: analysis.O, U: analysis.U, L: analysis.L },
+                    archetype: analysis.Archetype,
+                    hiddenTrait: analysis.Hidden_Trait
+                };
+            }
+        }
+
         let finalState: GameState | null = null;
     
-        setIsGeneratingScenario(true);
-    
         if (selectedCard) {
-            // Custom scenario card path: generate world from card + selected character
-            finalState = await generateScenarioFromCard(selectedCard, character, settings);
+            // Custom scenario card path
+            finalState = await generateScenarioFromCard(selectedCard, playerWithStats, settings);
         } else if (selectedScenario) {
-             if (selectedScenario.name === "Tutorial") {
-                // TUTORIAL PATH: Use a deterministic, predefined state for a consistent learning experience.
+             if (selectedScenario.name === "Tutorial" || selectedScenario.name === "Обучение") {
                 const tutorialState = { ...selectedScenario.initialState };
-                // Inject the chosen character's data into the predefined state, but keep the tutorial's POV.
                 tutorialState.player = {
-                    ...character,
-                    pov: selectedScenario.initialState.player.pov,
+                    ...playerWithStats,
+                    pov: selectedScenario.initialState.player?.pov || "",
                 };
                 finalState = tutorialState as GameState;
-            } else if (selectedScenario.name === "Random") {
-                // RANDOM SCENARIO PATH: Generate everything from scratch via AI.
-                finalState = await generateRandomScenario(character, settings);
+            } else if (selectedScenario.name === "The Glitch" || selectedScenario.name === "Глюк") {
+                finalState = await generateRandomScenario(playerWithStats, settings);
             } else {
-                // OTHER BUILT-IN SCENARIOS: Generate a randomized start based on the theme via AI.
-                finalState = await generateScenarioFromBuiltIn(selectedScenario, character, settings);
+                finalState = await generateScenarioFromBuiltIn(selectedScenario, playerWithStats, settings);
             }
-        } else {
-            console.error("handleCharacterSelect called without a selected scenario or card.");
         }
         
         setIsGeneratingScenario(false);
@@ -134,15 +118,14 @@ const App: React.FC = () => {
             await startGame(finalState);
             setScreen('game');
         } else {
-            // Common error handling for failed generation
-            alert("Failed to start the game. The Gemini Master may be busy.");
+            alert("Failed to start the game. The HOLE ENGINE refused the connection.");
+            setScreen('new-game-character');
         }
     };
     
     const handleQuickstart = async () => {
         setIsGeneratingScenario(true);
         
-        // A special template character that tells the service to generate one from scratch
         const randomCharacterTemplate: Character = {
             name: "Random",
             description: "A character to be generated from scratch by the AI.",
@@ -159,7 +142,7 @@ const App: React.FC = () => {
             await startGame(generatedState);
             setScreen('game');
         } else {
-            alert("Failed to start the game. The Gemini Master may be busy.");
+            alert("Failed to start the game.");
         }
     };
 
@@ -190,112 +173,22 @@ const App: React.FC = () => {
         document.body.removeChild(a);
     }
     
-    const handlePanelToggle = (id: PanelId) => {
-        setPanels(prev => ({
-            ...prev,
-            [id]: { ...prev[id], isOpen: !prev[id].isOpen }
-        }));
-    };
-    
     const handleOpenSettings = (returnScreen: AppScreen) => {
         setSettingsReturnScreen(returnScreen);
         setScreen('settings');
     };
 
-    const renderGame = () => {
-        if (!gameState) return <div className="flex-grow flex items-center justify-center">Loading...</div>;
-        
-        const header = (
-            <Header 
-                characterName={gameState.player.name}
-                location={gameState.location.name}
-                onMenu={() => setScreen('main-menu')}
-                onSettings={() => handleOpenSettings('game')}
-                onSave={handleSaveGame}
-                panels={panels}
-                onPanelToggle={handlePanelToggle}
-                isLogOnlyMode={isLogOnlyMode}
-                onToggleLogOnlyMode={() => setIsLogOnlyMode(p => !p)}
-            />
-        );
-
-        const input = (
-             <InputHandler 
-                onCommand={(cmd) => processPlayerCommand(cmd, settings)}
-                isLoading={isLoading}
-                suggestedActions={gameState.suggestedActions}
-            />
-        );
-
-        if (isLogOnlyMode) {
-            return (
-                <div className="flex flex-col h-full">
-                    {header}
-                    <main className="flex-grow p-2 overflow-hidden">
-                        <GameLog log={gameState.log} />
-                    </main>
-                    <div className="flex-shrink-0 p-2">
-                        {input}
-                    </div>
-                </div>
-            );
-        }
-        
-        return (
-            <div className="flex flex-col h-full">
-                {header}
-                <main className="flex-grow flex gap-2 p-2 overflow-hidden">
-                    {/* Left Column */}
-                    <div className="w-2/3 flex flex-col gap-2">
-                        {panels.pov.isOpen && (
-                            <div className="h-3/4">
-                                <Panel title={panels.pov.title} className="h-full">
-                                    <PovPanel pov={gameState.player.pov} />
-                                </Panel>
-                            </div>
-                        )}
-                        <div className={panels.pov.isOpen ? "h-1/4" : "h-full"}>
-                            <Panel title={t('log')} className="h-full">
-                                <GameLog log={gameState.log} />
-                            </Panel>
-                        </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className="w-1/3 h-full flex flex-col gap-2">
-                        {panels.map.isOpen && (
-                            <Panel title={panels.map.title} className="flex-1 min-h-0">
-                                <GameScreen asciiMap={gameState.location.asciiMap} />
-                            </Panel>
-                        )}
-                        {panels.inventory.isOpen && (
-                            <Panel title={panels.inventory.title} className="flex-1 min-h-0">
-                                <InventoryPanel inventory={gameState.player.inventory} />
-                            </Panel>
-                        )}
-                         {panels.npcs.isOpen && (
-                            <Panel title={panels.npcs.title} className="flex-1 min-h-0">
-                                <NpcPanel npcs={gameState.npcs} />
-                            </Panel>
-                        )}
-                        {panels.stats.isOpen && (
-                             <Panel title={panels.stats.title} className="flex-1 min-h-0">
-                                <PlayerStatsPanel stats={gameState.player.stats} />
-                            </Panel>
-                        )}
-                    </div>
-                </main>
-                <div className="flex-shrink-0 p-2">
-                    {input}
-                </div>
-            </div>
-        )
-    };
-    
     const renderScreen = () => {
         switch (screen) {
             case 'loading':
-                return null; // Render nothing while deciding the first screen
+                return null;
+            case 'analyzing':
+                return (
+                    <div className="flex-grow flex flex-col items-center justify-center">
+                        <p className="text-2xl blinking-cursor" style={{color: theme.colors.accent1}}>ANALYZING BIOMETRICS...</p>
+                        <p className="text-sm opacity-50 mt-2">CALCULATING S.O.U.L. VECTORS</p>
+                    </div>
+                );
             case 'intro':
                 return <IntroSequence onIntroComplete={handleIntroComplete} />;
             case 'splash':
@@ -313,10 +206,19 @@ const App: React.FC = () => {
                 return <ScenarioMenu onSelect={handleScenarioSelect} onBack={() => setScreen('main-menu')} onAddScenario={() => setScreen('content-editor')} isGenerating={isGeneratingScenario} />;
             case 'new-game-character':
                 if (!selectedScenario) {
-                    setScreen('new-game-scenario'); // Should not happen, but as a fallback
+                    setScreen('new-game-scenario'); 
                     return null;
                 }
-                return <CharacterMenu scenario={selectedScenario} onSelect={handleCharacterSelect} onBack={() => setScreen('new-game-scenario')} isGenerating={isGeneratingScenario} onQuickstart={handleQuickstart} />;
+                return (
+                    <CharacterMenu 
+                        scenario={selectedScenario} 
+                        onSelect={handleCharacterSelect} 
+                        onBack={() => setScreen('new-game-scenario')} 
+                        isGenerating={isGeneratingScenario} 
+                        onQuickstart={handleQuickstart} 
+                        onAddCharacter={() => setScreen('content-editor')}
+                    />
+                );
             case 'settings':
                 return <SettingsMenu onBack={() => setScreen(settingsReturnScreen)} />;
             case 'load-game':
@@ -326,7 +228,16 @@ const App: React.FC = () => {
             case 'content-editor':
                 return <ContentEditor onBack={() => setScreen('creator-tools')} />;
             case 'game':
-                return renderGame();
+                if (!gameState) return <div className="flex-grow flex items-center justify-center">Loading...</div>;
+                return <GameLayout 
+                    gameState={gameState} 
+                    settings={settings} 
+                    isLoading={isLoading} 
+                    processPlayerCommand={processPlayerCommand} 
+                    onSave={handleSaveGame}
+                    onMenu={() => setScreen('main-menu')}
+                    onSettings={handleOpenSettings}
+                />;
             default:
                 return <div>Unknown screen</div>;
         }
@@ -337,7 +248,33 @@ const App: React.FC = () => {
             className="w-screen h-screen font-mono text-base overflow-hidden"
             style={{ backgroundColor: theme.colors.bg, color: theme.colors.text }}
         >
+            <style>{`
+                ::-webkit-scrollbar {
+                    width: 14px;
+                    height: 14px;
+                }
+                ::-webkit-scrollbar-track {
+                    background: ${theme.colors.bg};
+                    border-left: 1px solid ${theme.colors.accent1};
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: ${theme.colors.accent1}; 
+                    border: 2px solid ${theme.colors.bg};
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                    background: ${theme.colors.highlightText};
+                    border-color: ${theme.colors.highlightBg};
+                }
+                ::-webkit-scrollbar-corner {
+                    background: ${theme.colors.bg};
+                }
+                * {
+                    scrollbar-width: auto;
+                    scrollbar-color: ${theme.colors.accent1} ${theme.colors.bg};
+                }
+            `}</style>
             <AnimatedBackground style={settings.background} />
+            {settings.crtEnabled && <CrtOverlay />}
             <div className="relative z-10 w-full h-full flex flex-col">
                 {renderScreen()}
             </div>
